@@ -95,6 +95,7 @@ class CreateGraph(object):
                     shared_star_index = randint(1, nb_star_nodes_rand)
                     while shared_star_index in shared_star_index_used:
                         shared_star_index = randint(1, nb_star_nodes_rand)
+                    shared_star_index_used.append(shared_star_index)
 
                     #pick randomly left or right neighbour (by index)
                     neighnour = randint(0,1)
@@ -102,6 +103,9 @@ class CreateGraph(object):
                         dest_gw_index = (((self.gw_start_index + count) - 1) % self.nb_GW)
                     else:
                         dest_gw_index = (((self.gw_start_index + count) + 1) % self.nb_GW)
+                    if dest_gw_index == 0:
+                        # TODO: hack! Maybe refactor. For now its good.
+                        dest_gw_index = 1
 
                     self.G.add_edge(dest_gw_index, str(count) + 'b-' + str(shared_star_index), BW=self.LoRaWAN_databit_translation[datarate][0], PR=self.MM_PR)
                     nb_shared_nodes -= 1
