@@ -1,11 +1,10 @@
 import networkx as nx
 from random import randint
-from random import seed
 import random as rand
 from math import floor
-import string
+import matplotlib.pyplot as plt
 
-class CreateGraph(object):
+class Uc1_graph(object):
 
     # CONSTANTS ( Shortcuts -> DC = Data Center, NR = router (Network Center), GW = gateway, MM = measuring module )
     # NODES - use case1
@@ -42,8 +41,19 @@ class CreateGraph(object):
     LoRaWAN_databit_translation = {0: (250, 12), 1: (440, 11), 2: (980, 10), 3: (1760, 9),
                                    4: (3125, 8), 5: (5470, 7), 6: (11000, 7)}
 
+    def __init__(self, core_node_count, gw_node_count, method, star_node_count, variance, seed, shared_star_nodes_percentage=0):
+        self.core_node_count = core_node_count
+        self.gw_node_count = gw_node_count
+        self.method = method
+        self.start_node_count = star_node_count
+        self.variance = variance
+        self.shared_star_nodes_percentage = shared_star_nodes_percentage
+        self.seed = seed
+        self.gateways_index = set()
+        rand.seed(seed)
 
-    def __init__(self):
+        self.__UC1_graph_generation(core_node_count, gw_node_count, method, star_node_count, variance, seed)
+
         self.G = nx.Graph()
         self.nb_GW = 0
         self.nb_NR = 0
@@ -55,14 +65,51 @@ class CreateGraph(object):
     def next(self):
         None,
 
-    def UC1_graph_generation(self, seedval, nb_gw, nb_nr, nb_star_nodes, star_nodes_variance,
-                             max_shared_nodes_percentage=0, method="mymethod"):
-
-        seed(seedval)
+    def __UC1_graph_generation(self, core_node_count, gw_node_count, method, star_node_count, variance, seed):
 
         if method == "mymethod":
-            self.__centralPartGen(int(nb_gw), int(nb_nr))
-            self.__starPartGen(int(nb_star_nodes), int(star_nodes_variance), int(max_shared_nodes_percentage))
+            a = 0
+            #self.__centralPartGen(int(nb_gw), int(nb_nr))
+            #self.__starPartGen(int(nb_star_nodes), int(star_nodes_variance), int(max_shared_nodes_percentage))
+
+        if method == "newman-watts-strogatz":
+            self.G = nx.newman_watts_strogatz_graph(core_node_count, randint(0, core_node_count-1), 0.1, seed)
+
+        if method == "barabasi-albert":
+            self.G = nx.barabasi_albert_graph(core_node_count, randint(1, core_node_count-1), seed)
+
+        if method == "erdos-renyi":
+            self.G = nx.erdos_renyi_graph(core_node_count, rand.random(), seed)
+
+        if method == "euclidean":
+            dimensions = 2
+            self.G = nx.random_geometric_graph(core_node_count, dimensions * rand.random(), dim=dimensions, seed=seed)
+
+        self.__pick_random_GW_nodes(core_node_count, gw_node_count)
+        self.__add_star_nodes(star_node_count, variance)
+
+    def __add_star_nodes(self, star_node_count, variance, shared_star_nodes_percentage=0, datarate=5):
+
+        for gw in self.gateways_index:
+            nb_star_nodes_rand = abs(int(floor(rand.normalvariate(star_node_count, variance))))
+            G_help = nx.generators.star_graph(nb_star_nodes_rand + 1)
+
+            for edge in G_help.edges:
+                G_help.add_edge(edge[0], edge[1], BW=self.LoRaWAN_databit_translation[datarate][0], PR=self.MM_PR)
+
+            self.G = nx.union(self.G, G_help, (None, str(gw) + 's'))
+
+    def __pick_random_GW_nodes(self, core_node_count, gw_node_count):
+        used_gw = set()
+        while gw_node_count:
+            gw_index = randint(0, core_node_count-1)
+            while gw_index in used_gw:
+                gw_index = randint(0, core_node_count-1)
+            used_gw.add(gw_index)
+            self.G.add_node(gw_index, role_affinity="GW")
+            self.gateways_index.add(gw_index)
+            gw_node_count -= 1
+
 
     def __starPartGen(self, nb_star_nodes, variance, max_shared_nodes_percentage=0, datarate=0):
 
@@ -208,6 +255,13 @@ class CreateGraph(object):
 
     def __createEdgePart(num_of_edge_nodes):
         return nx.generators.classic.star_graph(num_of_edge_nodes)
+
+    """
+    plt.subplot(121)
+    nx.draw(self.G, with_labels=True, font_weight='bold')
+    plt.show()
+    a = 0
+    """
 
 
 

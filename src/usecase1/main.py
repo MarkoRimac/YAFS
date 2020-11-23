@@ -1,24 +1,16 @@
 import sys
-from CreateGraph import CreateGraph
+from uc1_graph import Uc1_graph
 import matplotlib.pyplot as plt
 import networkx as nx
+import random as rand
 import argparse
 
 def main(args):
     """
     TOPOLOGY creation
     """
-
-    print(args.method, args.gw_node_count)
-    myGraph = CreateGraph()
-    # seed, nb_gw, nb_nodes, nb_star_nodes, variance, max_stared_nodes_percentage, method
-    myGraph.UC1_graph_generation(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5])
-
-    nx.write_gexf(myGraph.G, args.method)
-
-    plt.subplot(121)
-    nx.draw(myGraph.G, with_labels=True, font_weight='bold')
-    plt.show()
+    graph = Uc1_graph(args.core_node_count, args.gw_node_count, args.method, args.star_node_count, args.variance, args.seed)
+    nx.write_gexf(graph.G, args.method)
 
 def check_bigger_than_three(value):
     ival = int(value)
@@ -46,18 +38,21 @@ def get_and_check_args():
                               help="Number of nodes in core part of topology")
     parser.add_argument("gw_node_count", type=check_bigger_than_one, help="Number of GW nodes")
     parser.add_argument("method", type=check_possible_methods, help="Name of method used to generate core function")
+    parser.add_argument("seed", type=int, help="set seed for random values")
+    parser.add_argument("star_node_count", type=check_bigger_than_one, help="middle val for normal distribution")
+    parser.add_argument("variance", type=int, help="variance for normal distribution")
 
-    args = parser.parse_args()
+    arguments = parser.parse_args()
 
     # Post parser conditions. Conditions between args checked.
-    if args.gw_node_count > args.core_node_count - 2:
+    if arguments.gw_node_count > arguments.core_node_count - 2:
         raise argparse.ArgumentTypeError("Please make sure that: nb_gw <= nb_core_nodes - 2"
                                          "always have to exist ")
-    return args
+    return arguments
 
 
 parser = argparse.ArgumentParser()
-core_graph_methods = ("marko", "janko")
+core_graph_methods = ("newman-watts-strogatz", "barabasi-albert", "erdos-renyi", "euclidean")
 
 if __name__ == '__main__':
     args = get_and_check_args()
