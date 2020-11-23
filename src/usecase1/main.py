@@ -1,8 +1,5 @@
-import sys
 from uc1_graph import Uc1_graph
-import matplotlib.pyplot as plt
 import networkx as nx
-import random as rand
 import argparse
 
 def main(args):
@@ -10,7 +7,8 @@ def main(args):
     TOPOLOGY creation
     """
     graph = Uc1_graph(args.core_node_count, args.gw_node_count, args.method, args.star_node_count, args.variance, args.seed)
-    nx.write_gexf(graph.G, args.method)
+    nx.write_gexf(graph.G, args.outFILE + '.gexf')
+
 
 def check_bigger_than_three(value):
     ival = int(value)
@@ -37,10 +35,10 @@ def get_and_check_args():
     parser.add_argument("core_node_count", type=check_bigger_than_three,
                               help="Number of nodes in core part of topology")
     parser.add_argument("gw_node_count", type=check_bigger_than_one, help="Number of GW nodes")
-    parser.add_argument("method", type=check_possible_methods, help="Name of method used to generate core function")
-    parser.add_argument("seed", type=int, help="set seed for random values")
+    parser.add_argument("method", type=check_possible_methods, help="Name of method used to generate core function, possible:" + str(core_graph_methods))
     parser.add_argument("star_node_count", type=check_bigger_than_one, help="middle val for normal distribution")
     parser.add_argument("variance", type=int, help="variance for normal distribution")
+    parser.add_argument("seed", type=int, help="set seed for random values")
 
     arguments = parser.parse_args()
 
