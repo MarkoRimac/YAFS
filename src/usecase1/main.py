@@ -9,6 +9,12 @@ def main(args):
     graph = Uc1_graph(args.core_node_count, args.gw_node_count, args.method, args.star_node_count, args.variance, args.seed)
     nx.write_gexf(graph.G, args.outFILE + '.gexf')
 
+    """
+    Application
+    """
+
+
+
 
 def check_bigger_than_three(value):
     ival = int(value)
