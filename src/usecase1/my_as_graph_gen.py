@@ -74,7 +74,7 @@ class MY_as_graph_gen:
     """ Generates random internet AS graphs.
     """
 
-    def __init__(self, nb_regions, nb_core_nodes, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
+    def __init__(self, nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
                 nb_mm, nb_mm_variance, t_connection_probability, seed):
         """ Initializes variables. Immediate numbers are taken from [1].
 
@@ -111,8 +111,8 @@ class MY_as_graph_gen:
 
         # TODO: Check da broj regija uvijek bude manji ili jednak broju cvorova u core mrezi - Sanity checks..
         self.n_t = int(rand.randint(1, self.nb_regions))  # num of T nodes
-        self.nb_core_nodes = nb_core_nodes
-        self.n_m = nb_core_nodes - self.n_t  # number of M nodes
+        self.nb_core_nodes_per_region = nb_core_nodes_per_region
+        self.nb_core_nodes_per_region_variance = nb_core_nodes_per_region_variance
         self.avg_deg_core_node = avg_deg_core_node
 
         self.nb_mm = nb_mm
@@ -210,11 +210,8 @@ class MY_as_graph_gen:
         if kind == "GW":
             regs = 1
         else:
-            regs = self.nb_regions  # regions in which node resides will always be max
-            """"
-            if rand.random() < reg2prob:  # node is in two regions
-                regs = 5
-            """
+            regs = int(math.ceil(rand.random() * self.nb_regions)) #  Broj regija u kojoj se M cvor nalazi.
+
         node_options = set()
 
         self.G.add_node(i, type=kind)
@@ -229,12 +226,13 @@ class MY_as_graph_gen:
             self.reg_count = (self.reg_count + 1) % self.nb_regions # u svakoj regiji po reg_count
             self.G.add_node(i, regions="REG" + str(r)) # for debugging add region attribute
         else:
-            region_union = ""
+            region_union = list()
             for r in rand.sample(list(self.regions), regs):  # Choose random regs
-                region_union = region_union + "REG" + str(r)                                        # For debugging
+                region_union.append(str(r))                                     # For debugging
                 node_options = node_options.union(self.regions[r])  # Union of regions
                 self.regions[r].add(i)
-            #self.G.add_node(i, regions=region_union) # for debugging add region attribute
+            region_union.sort()
+            self.G.add_node(i, regions=' '.join([str(elem) for elem in region_union])) # for debugging add region attribute
 
         edge_num = uniform_int_from_avg(1, avg_deg, self.seed)
 
@@ -428,9 +426,10 @@ class MY_as_graph_gen:
         self.nodes["T"] = set(list(self.G.nodes()))
 
         i = len(self.nodes["T"])
-        for _ in range(self.n_m):
-            self.nodes["M"].add(self.add_node(i, "M", self.avg_deg_core_node, self.t_m))
-            i += 1
+        for x in range(self.nb_regions):
+            for _ in range(int(math.floor(rand.normalvariate(self.nb_core_nodes_per_region, self.nb_core_nodes_per_region_variance)))):
+                self.nodes["M"].add(self.add_node(i, "M", self.avg_deg_core_node, self.t_m))
+                i += 1
         for l in range(self.nb_regions):
             x = abs(int(math.floor(rand.normalvariate(self.nb_gw_per_region, self.nb_gw_per_region_variance))))
             for _ in range(x):
@@ -481,7 +480,7 @@ class MY_as_graph_gen:
 
 
 
-def my_random_internet_as_graph(nb_regions, nb_core_nodes, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
+def my_random_internet_as_graph(nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
                 nb_mm, nb_mm_variance, t_connection_probability, seed=None):
     """ Generates a random undirected graph resembling the Internet AS network
 
@@ -519,7 +518,7 @@ def my_random_internet_as_graph(nb_regions, nb_core_nodes, nb_gw_per_region, nb_
     in Communications, vol. 28, no. 8, pp. 1250-1261, October 2010.
     """
 
-    GG = MY_as_graph_gen(nb_regions, nb_core_nodes, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
+    GG = MY_as_graph_gen(nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
                 nb_mm, nb_mm_variance, t_connection_probability, seed)
     G = GG.generate()
     return G

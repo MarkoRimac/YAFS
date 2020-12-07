@@ -7,7 +7,7 @@ def main(data):
     """
     TOPOLOGY creation
     """
-    G = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
+    G = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
     #graph = Uc1_graph(args.core_node_count, args.gw_node_count, args.method, args.star_node_count, args.variance, args.seed)
     nx.write_gexf(G, data.outFILE + '.gexf')
 
@@ -30,7 +30,8 @@ def get_and_check_args(data):
                         help="output file name for generated graph")
     parser.add_argument("nb_regions", type=check_bigger_than_zero,
                         help="Number of regions")
-    parser.add_argument("nb_core_nodes", type=check_bigger_than_zero, help="Number of core nodes")
+    parser.add_argument("nb_core_nodes_per_region", type=check_bigger_than_zero, help="Number of core nodes per region")
+    parser.add_argument("nb_core_nodes_per_region_variance", type=check_bigger_than_zero, help="Variance for number of core nodes per region")
     parser.add_argument("nb_gw_per_region", type=check_positive_and_zero, help="Number of gateways per region")
     parser.add_argument("nb_gw_per_region_variance", type=check_positive_and_zero, help="Number of gateways per region variance")
     parser.add_argument("avg_deg_core_node", type=check_bigger_than_zero, help="average degree of a core node, Pick a random integer with uniform probability.")
@@ -43,7 +44,7 @@ def get_and_check_args(data):
     arguments = parser.parse_args(x)
 
     # Ovisnosti medu argumentima
-    if (arguments.nb_gw_per_region + arguments.nb_gw_per_region_variance * 3) * arguments.nb_regions > arguments.nb_core_nodes - arguments.nb_regions:
+    if arguments.nb_gw_per_region + arguments.nb_gw_per_region_variance * 3 > arguments.nb_core_nodes_per_region + arguments.nb_core_nodes_per_region_variance * 3:
         raise argparse.ArgumentTypeError("Please make sure that max possible number of gateways (considering 3sigma normal distribution with a variance) be less than a total nb_core_nodes! ")
     return arguments
 

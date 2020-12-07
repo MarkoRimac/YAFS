@@ -1,7 +1,8 @@
 {
   "outFILE": "outfile",
   "nb_regions":  "5",
-  "nb_core_nodes":  "100",
+  "nb_core_nodes_per_region": "50",
+  "nb_core_nodes_per_region_variance": "2",
   "nb_gw_per_region":  "5",
   "nb_gw_per_region_variance": "1",
   "avg_deg_core_node":  "4",
