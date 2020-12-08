@@ -1,15 +1,25 @@
 import networkx as nx
 import argparse
 import json
+from topology import Topology
+from application import Application
 from my_as_graph_gen import my_random_internet_as_graph
-
+from uc1_application import Uc1_application
 def main(data):
     """
     TOPOLOGY creation
     """
-    G = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
+    t = Topology()
+    t.G = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
     #graph = Uc1_graph(args.core_node_count, args.gw_node_count, args.method, args.star_node_count, args.variance, args.seed)
-    nx.write_gexf(G, data.outFILE + '.gexf')
+    nx.write_gexf(t.G, data.outFILE + '.gexf')
+
+    """
+    Application
+    """
+    app = Uc1_application()
+
+
 
 
 def check_bigger_than_zero(value):
@@ -52,7 +62,7 @@ def get_and_check_args(data):
 parser = argparse.ArgumentParser()
 
 if __name__ == '__main__':
-    data = json.load(open('topology_input.json'))
+    data = json.load(open('topostuff.json'))
     args = get_and_check_args(data)
     main(args)
 

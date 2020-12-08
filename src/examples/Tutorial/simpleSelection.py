@@ -23,7 +23,7 @@ class MinimunPath(Selection):
         bestDES = []
 
         for des in DES_dst: ## In this case, there are only one deployment
-            dst_node = alloc_DES[des]
+            dst_node = alloc_DES[des]  # MARKO: Za sve deployane procese na nekom nodu traži put do i-a
             print ("\t\t Looking the path to id_node: %i" %dst_node)
 
             path = list(nx.shortest_path(sim.topology.G, source=node_src, target=dst_node))

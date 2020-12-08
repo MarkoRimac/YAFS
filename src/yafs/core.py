@@ -564,6 +564,8 @@ class Sim:
                         # The message can be treated by this module
                         """
                         Processing the message
+                        
+                        MARKO: OVDJE MOGU SPECIFICIRATI STA RADI KOJI MODUL I OVISNOSTI KOJA JE FILTRACIJA!!
                         """
                         # if ides == 3:
                         #     print "Consumer Message: %d " % self.env.now
@@ -578,7 +580,7 @@ class Sim:
                         #     print "-" * 30
 
                         #The module only computes this type of message one time.
-                        #It records once
+                        #It records once # MARKO: Modul će dobiti npr p oruke sa istom source porukom - to će obraiditi samo jednom, a onda ce dest biti razliciti za svaku poruku! To je ono više istih source poruka!
                         if not doBefore:
                             self.logger.debug(
                                 "(App:%s#DES:%i#%s)\tModule - Recording the message:\t%s" % (app_name, ides, module, msg.name))
@@ -608,7 +610,7 @@ class Sim:
 
                                     msg_out = copy.copy(register["message_out"])
                                     msg_out.timestamp = self.env.now
-                                    msg_out.id = msg.id
+                                    msg_out.id = msg.id # MARKO: message id se prenosi se cijelo vrijeme od sourca do targeta - vazno za filtraciju!
                                     msg_out.last_idDes = copy.copy(msg.last_idDes)
                                     msg_out.last_idDes.append(ides)
 
