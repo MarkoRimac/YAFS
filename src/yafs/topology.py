@@ -215,6 +215,13 @@ class Topology:
                     result.append(key)
         return result
 
+    def add_attributes(self, key, value):
+        """
+        MARKO: Dodavanje atributa
+        """
+        if not self.nodeAttributes.keys().__contains__(key):
+            self.nodeAttributes[key] = set()
+        self.nodeAttributes[key].add(value)
 
     def size(self):
         """

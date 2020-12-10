@@ -581,6 +581,7 @@ class Sim:
 
                         #The module only computes this type of message one time.
                         #It records once # MARKO: Modul će dobiti npr p oruke sa istom source porukom - to će obraiditi samo jednom, a onda ce dest biti razliciti za svaku poruku! To je ono više istih source poruka!
+                        # UBITI, jedna input poruka, na više servisa može ići!
                         if not doBefore:
                             self.logger.debug(
                                 "(App:%s#DES:%i#%s)\tModule - Recording the message:\t%s" % (app_name, ides, module, msg.name))
@@ -602,6 +603,7 @@ class Sim:
                                 "(App:%s#DES:%i#%s)\tModule - Sink Message:\t%s" % (app_name, ides, module, msg.name))
                             continue
                         else:
+                            # Ovde handlamo koju poruku cemo poslati.
                             if register["dist"](**register["param"]): ### THRESHOLD DISTRIBUTION to Accept the message from source
                                 if not register["module_dest"]:
                                     # it is not a broadcasting message

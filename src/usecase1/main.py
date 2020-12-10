@@ -5,19 +5,25 @@ from topology import Topology
 from application import Application
 from my_as_graph_gen import my_random_internet_as_graph
 from uc1_application import Uc1_application
+from uc1_placement import Uc1_placement
 def main(data):
     """
     TOPOLOGY creation
     """
     t = Topology()
-    t.G = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
+    t.G = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
     #graph = Uc1_graph(args.core_node_count, args.gw_node_count, args.method, args.star_node_count, args.variance, args.seed)
     nx.write_gexf(t.G, data.outFILE + '.gexf')
 
     """
     Application
     """
-    app = Uc1_application()
+    #app = Uc1_application()
+
+    #testin
+    #placement = Uc1_placement(name="uc1placement")
+    #placement.testing(t, app)
+
 
 
 
