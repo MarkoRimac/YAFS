@@ -719,6 +719,12 @@ class Sim:
                                 "(App:%s#DES:%i#%s)\tModule - Recording the message:\t%s" % (app_name, ides, module, msg.name))
                             type = self.NODE_METRIC
 
+                            # TODO: SLUCAJ1
+                            if msg.id in self.recieved_MM_messages:
+                                msg.inst = msg.inst - 6 # Makni dio za Dekompresiju jer je ova poruka "filtrirana"
+                                # TODO: Parametriziraj broj 6 kroz nesto...
+                                # TODO: Nekako predaj onaj N parametarr, mozda kros message?
+
                             service_time = self.__update_node_metrics(app_name, module, msg, ides, type)
 
                             yield self.env.timeout(service_time)
@@ -738,30 +744,20 @@ class Sim:
                             if register["dist"](**register["param"]): ### THRESHOLD DISTRIBUTION to Accept the message from source
                                 if not register["module_dest"]:
 
-                                    if module[0] == "NR":
-                                        id_node = self.alloc_DES[ides]  # Gdje se izvodi ovaj DES
-                                        if module["decompression_before"].__contains__(id_node):
-                                            TODO = 0
-                                        if module["decompression_after"].__contains__(id_node):
-                                            if msg.id in self.recieved_MM_messages:
-                                                continue  # MARKO: DUPLICIRANA PORUKA!
-                                            else:
-                                                self.recieved_MM_messages.add(msg.id)
-                                                yield  # DEKOMPRESIJA PODATAKA!
-                                        if module["no_decompression"].__contains__(id_node):
-                                            TODO = 0
-
-                                    # it is not a broadcasting message
-                                    self.logger.debug("(App:%s#DES:%i#%s)\tModule - Transmit Message:\t%s" % (
-                                        app_name, ides, module, register["message_out"].name))
-
                                     msg_out = copy.copy(register["message_out"])
                                     msg_out.timestamp = self.env.now
-                                    msg_out.id = msg.id
                                     msg_out.last_idDes = copy.copy(msg.last_idDes)
-                                    msg_out.last_idDes.append(ides)
+                                    msg_out.id = msg.id
+                                    msg_out.last_idDes = msg.last_idDes.append(ides)
 
-                                    self.__send_message(app_name, msg_out,ides, self.FORWARD_METRIC)
+                                    if module[0] != "NR":
+                                        self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
+                                    elif module[0] == "NR" and msg.id not in self.recieved_MM_messages:
+                                        self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
+                                        self.recieved_MM_messages.add(msg.id)
+                                    else:
+                                        self.logger.debug("(App:%s#DES:%i#%s)\tModule - Filtering message id:\t%i" % (
+                                            app_name, ides, module, msg.id))
 
                                 else:
                                     # it is a broadcasting message

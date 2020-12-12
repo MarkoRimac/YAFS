@@ -30,6 +30,20 @@ class Uc1_application(object):
             {"DC": {"RAM": 1000*self.P, "IPT": 10000*self.P, "Type":Application.TYPE_SINK}},
         ])
 
+        # CASE WHERE THERE IS DECOMPRESSION AFTER NR FILTRATION!
+        MM_GW_m = Message("MM_GW_m", "MM", "GW", instructions=self.__calcOktets(1),
+                          bytes=self.__calcInstruction(20, 16))
+        GW_NR_m = Message("GW_NR_m", "GW", "NR", instructions=self.__calcOktets(6) + self.__calcOktets(3),
+                          bytes=self.__calcInstruction(60, 27))
+        NR_DC_m = Message("NR_DC_m", "NR", "DC", instructions=self.__calcOktets(12) + self.__calcOktets(8))
+
+        distribution = DeterministicDistribution_mm_uc1(15, name="UC1")
+        self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)
+        self.app.add_service_module("GW", MM_GW_m, GW_NR_m)
+        self.app.add_service_module("NR", GW_NR_m, NR_DC_m)
+        #self.app.add_service_module("DC", NR_DC_m, PROC_DC_m) # DC SE U PLACEMENTU DEFINIRA!
+
+        """
         # DECOMP -> decompression, PROC -> DataProcessing
         MM_GW_m = Message("MM_GW_m", "MM", "GW", instructions=self.__calcOktets(1),
                           bytes=self.__calcInstruction(20, 16))
@@ -69,6 +83,7 @@ class Uc1_application(object):
         distribution = DeterministicDistribution_mm_uc1(15, name="deterministicMM")
         self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)
         self.app.add_source_messages(MM_GW_m)
+        """
 
     def __calcOktets(self, ratio):
         return ratio * self.N

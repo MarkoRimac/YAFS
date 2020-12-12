@@ -131,7 +131,6 @@ class MY_as_graph_gen:
         self.LoRaDatarate = 5 # odavde se izvlaci BW
         self.LoRaPR = 1 # in s
 
-
     def t_graph(self):
         """ Generates the core mesh network of tier one nodes of a AS graph.
 
@@ -328,8 +327,6 @@ class MY_as_graph_gen:
 
         return self.G
 
-
-
 def my_random_internet_as_graph(nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
                 nb_mm, nb_mm_variance, t_connection_probability, seed=None):
     """ Generates a random undirected graph resembling the Internet AS network
@@ -370,5 +367,5 @@ def my_random_internet_as_graph(nb_regions, nb_core_nodes_per_region, nb_core_no
 
     GG = MY_as_graph_gen(nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
                 nb_mm, nb_mm_variance, t_connection_probability, seed)
-    G = GG.generate()
-    return G
+    GG.generate()
+    return GG

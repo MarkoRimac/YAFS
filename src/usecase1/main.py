@@ -4,9 +4,12 @@ import json
 from topology import Topology
 from application import Application
 from my_as_graph_gen import my_random_internet_as_graph
+from my_as_graph_gen import MY_as_graph_gen
 from uc1_application import Uc1_application
 from uc1_placement import Uc1_placement
+from selection import First_ShortestPath
 from yafs.core import Sim
+
 
 def main(data):
 
@@ -14,19 +17,24 @@ def main(data):
     TOPOLOGY creation
     """
     t = Topology()
-    t.G = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
+    AS_graph = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
+    t.G = AS_graph.G
+    t.add_as_graph_link(AS_graph)
     #graph = Uc1_graph(args.core_node_count, args.gw_node_count, args.method, args.star_node_count, args.variance, args.seed)
-    nx.write_gexf(t.G, data.outFILE + '.gexf')
+    #nx.write_gexf(t.G, data.outFILE + '.gexf')
 
     """
     Application
     """
     app = Uc1_application("UseCase1")
     placement = Uc1_placement(name="UseCase1")
-    selectorPath = "todo"
+    selectorPath = First_ShortestPath()
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
+    s.run(500,show_progress_monitor=True)
+
+    finished = 0
 
 
 

@@ -31,6 +31,7 @@ class Topology:
         self.G = None
         self.nodeAttributes = {}
         self.logger = logger or logging.getLogger(__name__)
+        self.my_as_graph = 0
 
 
 
