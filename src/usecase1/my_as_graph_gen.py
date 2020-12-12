@@ -120,8 +120,17 @@ class MY_as_graph_gen:
 
         # Code static help variables.
         self.reg_count = 0
-        self.LoRaWAN_databit_translation = {0: (250, 12), 1: (440, 11), 2: (980, 10), 3: (1760, 9),
-                                       4: (3125, 8), 5: (5470, 7), 6: (11000, 7)}
+
+        # Configurable constants!
+        # in MBits/s
+        self.LoRaWAN_databit_translation = {0: (0.000250, 12), 1: (0.000440, 11), 2: (0.000980, 10), 3: (0.001760, 9),
+                                       4: (0.003125, 8), 5: (0.005470, 7), 6: (0.011000, 7)}
+        self.IP_PT = 2  # in s
+        self.IP_BW = 100  # in MBits/s
+
+        self.LoRaDatarate = 5 # odavde se izvlaci BW
+        self.LoRaPR = 1 # in s
+
 
     def t_graph(self):
         """ Generates the core mesh network of tier one nodes of a AS graph.
@@ -139,17 +148,8 @@ class MY_as_graph_gen:
                 self.regions[r].add(i)
             for j in self.G.nodes():
                 if i != j:
-                    self.add_edge(i, j, "peer")
-            self.customers[i] = set()
-            self.providers[i] = set()
+                    self.G.add_edge(i, j, PR=self.IP_PT, BW=self.IP_BW)
         return self.G
-
-    def add_edge(self, i, j, kind):
-        if kind == "transit":
-            customer = str(i)
-        else:
-            customer = "none"
-        self.G.add_edge(i, j, type=kind, customer=customer)
 
     def choose_peer_pref_attach(self, node_list):
         """ Pick a node with a probability weighted by its peer degree.
@@ -172,16 +172,6 @@ class MY_as_graph_gen:
 
         degs = dict(self.G.degree(node_list))
         return choose_pref_attach(degs, self.seed)
-
-    def add_customer(self, i, j):
-        """ Keep the dictionaries 'customers' and 'providers' consistent.
-        """
-
-        self.customers[j].add(i)
-        self.providers[i].add(j)
-        for z in self.providers[j]:
-            self.customers[z].add(i)
-            self.providers[i].add(z)
 
     def add_node(self, i, kind, avg_deg, t_edge_prob):
         """ Add a node and its customer transit edges to the graph.
@@ -250,98 +240,10 @@ class MY_as_graph_gen:
             else:
                 j = self.choose_node_pref_attach(m_options)
                 m_options.remove(j)
-            self.add_edge(i, j, "transit")
-            self.add_customer(i, j)
+            self.G.add_edge(i, j, PR=self.IP_PT, BW=self.IP_BW)
             d += 1
 
         return i
-
-    def add_m_peering_link(self, m, to_kind):
-        """ Add a peering link between two middle tier (M) nodes.
-
-        Target node j is drawn considering a preferential attachment based on
-        other M node peering degree.
-
-        Parameters
-        ----------
-        m: object
-            Node identifier
-        to_kind: string
-            type for target node j (must be always M)
-
-        Returns
-        -------
-        success: boolean
-        """
-
-        # candidates are of type 'M' and are not customers of m
-        node_options = self.nodes["M"].difference(self.customers[m])
-        # candidates are not providers of m
-        node_options = node_options.difference(self.providers[m])
-        # remove self
-        if m in node_options:
-            node_options.remove(m)
-
-        # remove candidates we are already connected to
-        for j in self.G.neighbors(m):
-            if j in node_options:
-                node_options.remove(j)
-
-        if len(node_options) > 0:
-            j = self.choose_peer_pref_attach(node_options)
-            self.add_edge(m, j, "peer")
-            self.G.nodes[m]["peers"] += 1
-            self.G.nodes[j]["peers"] += 1
-            return True
-        else:
-            return False
-
-    def add_cp_peering_link(self, cp, to_kind):
-        """ Add a peering link to a content provider (CP) node.
-
-        Target node j can be CP or M and it is drawn uniformely among the nodes
-        belonging to the same region as cp.
-
-        Parameters
-        ----------
-        cp: object
-            Node identifier
-        to_kind: string
-            type for target node j (must be M or CP)
-
-        Returns
-        -------
-        success: boolean
-        """
-
-        node_options = set()
-        for r in self.regions:  # options include nodes in the same region(s)
-            if cp in self.regions[r]:
-                node_options = node_options.union(self.regions[r])
-
-        # options are restricted to the indicated kind ('M' or "GW")
-        node_options = self.nodes[to_kind].intersection(node_options)
-
-        # remove self
-        if cp in node_options:
-            node_options.remove(cp)
-
-        # remove nodes that are cp's providers
-        node_options = node_options.difference(self.providers[cp])
-
-        # remove nodes we are already connected to
-        for j in self.G.neighbors(cp):
-            if j in node_options:
-                node_options.remove(j)
-
-        if len(node_options) > 0:
-            j = rand.sample(node_options, 1)[0]
-            self.add_edge(cp, j, "peer")
-            self.G.nodes[cp]["peers"] += 1
-            self.G.nodes[j]["peers"] += 1
-            return True
-        else:
-            return False
 
     def graph_regions(self, rn):
         """ Initializes AS network regions.
@@ -355,44 +257,6 @@ class MY_as_graph_gen:
         self.regions = {}
         for i in range(rn):
             self.regions["REG" + str(i)] = set()
-
-    def add_peering_links(self, from_kind, to_kind):
-        """ Utility function to add peering links among node groups.
-        """
-        peer_link_method = None
-        if from_kind == "M":
-            peer_link_method = self.add_m_peering_link
-            m = self.p_m_m
-        if from_kind == "GW":
-            peer_link_method = self.add_cp_peering_link
-            if to_kind == "M":
-                m = self.p_cp_m
-            else:
-                m = self.p_cp_cp
-
-        for i in self.nodes[from_kind]:
-            num = uniform_int_from_avg(0, m, self.seed)
-            for _ in range(num):
-                peer_link_method(i, to_kind)
-
-    def add_star_nodes(self, start_index, datarate=5):
-
-        for gw in self.nodes["GW"]:
-            nb_star_nodes_rand = abs(int(math.floor(rand.normalvariate(self.nb_mm, self.nb_mm_variance))))
-            G_help = nx.generators.star_graph(nb_star_nodes_rand)
-
-            # TODO: check if attributes should be added here.
-            for edge in G_help.edges:
-                G_help.add_edge(edge[0], edge[1], BW=self.LoRaWAN_databit_translation[datarate][0])
-
-            for node in G_help.nodes:
-                if node == 0:
-                    continue  # Index 0 will be concatenated to GW
-                G_help.add_node(node, type="MM")
-
-            self.G = nx.union(self.G, G_help, (None, gw[2] + 's'))
-            self.G = nx.algorithms.contracted_nodes(self.G, gw, gw[2] + 's0')
-
 
     def generate(self):
         """ Generates a random AS network graph as described in [1].
@@ -436,20 +300,6 @@ class MY_as_graph_gen:
                 self.nodes["GW"].add(self.add_node(i, "GW", self.avg_deg_core_node, self.t_m))
                 i += 1
 
-        """
-        for _ in range(self.n_c):
-            self.nodes["C"].add(self.add_node(i, "C", 0, self.d_c, self.t_c))
-            i += 1
-        """
-
-        # currently all core nodes (M, T and CP) are created as tho they re all in all 5 groups, no need for peering
-        # links. If you do add them later, makes sure to add the necessary probablity values
-        """
-        self.add_peering_links("M", "M")
-        self.add_peering_links("GW", "M")
-        self.add_peering_links("GW", "GW")
-        """
-
         # Calculate the shortest distance between CP nodes in the same region.
         shortest_paths_len = dict()
         for region in self.regions:
@@ -467,13 +317,13 @@ class MY_as_graph_gen:
             for _ in range(x):
                 self.nodes['MM'].add(i)
                 self.G.add_node(i, type="MM")
-                self.G.add_edge(i, node)
+                self.G.add_edge(i, node, BW=self.LoRaWAN_databit_translation[self.LoRaDatarate][0], PR=self.LoRaPR)
 
                 # Add a connection to a nearby gateway based on the distance provided in shortest_paths_len dictionary.
                 for m, n in shortest_paths_len[node].items():
                     connection_probability = 1/pow(2, n)
                     if rand.random() < connection_probability:
-                        self.G.add_edge(m, i)
+                        self.G.add_edge(m, i, BW=self.LoRaWAN_databit_translation[self.LoRaDatarate][0], PR=self.LoRaPR)
                 i += 1
 
         return self.G

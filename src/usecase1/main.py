@@ -6,7 +6,10 @@ from application import Application
 from my_as_graph_gen import my_random_internet_as_graph
 from uc1_application import Uc1_application
 from uc1_placement import Uc1_placement
+from yafs.core import Sim
+
 def main(data):
+
     """
     TOPOLOGY creation
     """
@@ -18,12 +21,12 @@ def main(data):
     """
     Application
     """
-    #app = Uc1_application()
+    app = Uc1_application("UseCase1")
+    placement = Uc1_placement(name="UseCase1")
+    selectorPath = "todo"
 
-    #testin
-    #placement = Uc1_placement(name="uc1placement")
-    #placement.testing(t, app)
-
+    s = Sim(t)
+    s.deploy_app(app.app, placement, selectorPath)
 
 
 

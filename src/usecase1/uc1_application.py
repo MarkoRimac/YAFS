@@ -3,10 +3,11 @@ from population import Population, Statical
 from distribution import uniformDistribution
 from uc1_distribution import DeterministicDistribution_mm_uc1
 
+
 class Uc1_application(object):
 
-    def __init__(self, N=1, h=1, d=1, P=1, M=1, decompression=None, decompressionRatio=0.6):
-        self.app = Application(name="UseCase1")
+    def __init__(self, app_name, N=1, h=1, d=1, P=1, M=1, decompression=None, decompressionRatio=0.6):
+        self.app = Application(name=app_name)
 
         # TODO: sanity check of parameters.
         # multipliers for datasets. see .doc where use-case1 is explained.
@@ -24,8 +25,8 @@ class Uc1_application(object):
         # TODO: Check parameters, the P and M in docs, are those scalings?
         self.app.set_modules([
             {"MM": {"RAM": self.M, "IPT": self.P, "Type":Application.TYPE_SOURCE}},
-            {"GW": {"RAM": 100*self.M, "IPT": 20*self.P, "Type":Application.TYPE_MODULE}},
-            {"NR": {"RAM": 60*self.P, "IPT": 500*self.P, "Type":Application.TYPE_MODULE}},
+            {"GW": {"RAM": 100*self.M, "IPT": 20*self.P, "Type":Application.TYPE_MODULE}}, # Hack za predavanje parametarta u yafs core. Ne znam kako dva yield processa u yafsu simulirati, on nije zamisljen da tako radi.
+            {"NR": {"RAM": 60*self.P, "IPT": 500*self.P, "Type":Application.TYPE_MODULE}, "decompression_before": list(), "decompression_after": list(), "no_decompression": list()},
             {"DC": {"RAM": 1000*self.P, "IPT": 10000*self.P, "Type":Application.TYPE_SINK}},
         ])
 
@@ -55,7 +56,7 @@ class Uc1_application(object):
         # TODO:  MARKO check how to implement cases. Za početak makni komplex try only necessary.
         # source is added above in modules.
         self.app.add_service_module("GW", MM_GW_m, GW_NR_m)  # TODO: MARKO na gw modulu se ustvari može odrediti daljni flow poruka. Tj hocemo li kompresiu prije ili posije NR-a. U ovisnosti koju od ove dvije poruke ce posalti
-        self.app.add_service_module("GW", MM_GW_m, GW_DECOMP_m)
+        #self.app.add_service_module("GW", MM_GW_m, GW_DECOMP_m)
         self.app.add_service_module("NR", GW_NR_m, NR_DECOMP_m)
         self.app.add_service_module("NR", DECOMP_NR_m, NR_PROC_m)
         #self.app.add_service_module("NR", NR_NR_m, NR_NR_m) # TODO: maybe unnecessary
@@ -64,8 +65,10 @@ class Uc1_application(object):
         self.app.add_service_module("PROC", DECOMP_PROC_m, PROC_DC_m)
         self.app.add_service_module("PROC", NR_PROC_m, PROC_DC_m)
 
+        # MARKO: Population -> Sink doesn't have "service module", no "DES process"
         distribution = DeterministicDistribution_mm_uc1(15, name="deterministicMM")
         self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)
+        self.app.add_source_messages(MM_GW_m)
 
     def __calcOktets(self, ratio):
         return ratio * self.N

@@ -111,6 +111,7 @@ class Application:
         self.name = name
         self.services = {}
         self.messages = {}
+        self.sink_messages = {}
         self.modules = []
         self.modules_src = []
         self.modules_sink = []
@@ -146,7 +147,7 @@ class Application:
             if type == self.TYPE_SOURCE:
                 self.modules_src.append(name)
             elif type == self.TYPE_SINK:
-                self.modules_sink = name
+                self.modules_sink.append(name)
 
             self.modules.append(name)
 

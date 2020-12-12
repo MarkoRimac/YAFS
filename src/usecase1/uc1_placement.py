@@ -13,43 +13,79 @@ import random as rand
 
 class Uc1_placement(Placement):
 
+    def __init__(self, **kwargs):
+        super(Uc1_placement,self).__init__(**kwargs)
+        self.T_nodes_ids = list()
+        self.M_nodes_ids = list()
+        self.MM_nodes_ids = list()
+        self.GW_nodes_ids = list()
+        self.NR_nodes_ids = list()
+
+        # konstante
+        self.has_compression = True
+
+
     def initial_allocation(self, sim, app_name):
-        #We find the ID-nodo/resource
-        kind = {type: "MM"} # or whatever tag
-
-        id_cluster = sim.topology.find_IDs(kind)
         app = sim.apps[app_name]
+        topology = sim.topology
         services = app.services
-
-        for module in services:
-            if module in self.scaleServices:
-                for rep in range(0, self.scaleServices[module]):
-                    idDES = sim.deploy_module(app_name,module,services[module],id_cluster)
-
-
-    def testing(self, sim, topology, app_name):
-
-        app = sim.apps[app_name]
-        services = app.services
-        T_nodes_ids = list()
-        M_nodes_ids = list()
-
         id_and_type = nx.get_node_attributes(topology.G, "type")
         for id, type in id_and_type.items():
             if type == "MM":
-                sim.deploy_module(app, "MM", services["MM"], id)
+                self.MM_nodes_ids.append(id)
             elif type == "GW":
-                sim.deploy_module(app, "GW", services["GW"], id)
+                for module in app.data:
+                    for key in module:
+                        if key == 'GW': #tu se da jos definirati ima li ili ne kompresiju.
+                            if self.has_compression:
+                                module["gws_with_compression"].append(id) # Dodaj attribut da ima compresiju
+                            self.GW_nodes_ids.append(id)
             elif type == "T":
-                T_nodes_ids.append(id)
+                self.T_nodes_ids.append(id)
             elif type == "M":
-                M_nodes_ids.append(id)
+                self.M_nodes_ids.append(id)
 
-        # Random T node for DC
-        sim.deploy_module(app, "DC", services["DC"], rand.choice(T_nodes_ids))
+        sim.deploy_module(app.name, "GW", services["GW"], self.GW_nodes_ids)
+        sim.deploy_module(app.name, "MM", services["MM"], self.MM_nodes_ids)
+        # MARKO: POPULATION -> Random T node as DC sink
+        sim.deploy_sink(app.name, "DC", list(rand.choice(self.T_nodes_ids)))
 
-        # Jedan NR cvor u regiji.
-        # Dekompresija na GW.
+        # MARKO: PLACEMENT
+        # Node with biggest degree in a region
+        for region in topology.my_as_graph.regions.keys():
+            nodes = topology.my_as_graph.regions[region].intersection(self.M_nodes_ids)
+            sorted(nodes.degree, reverse=True)
+            sim.deploy_module(app.name, "NR", services["NR"], list(nodes[0]))
+
+    def testing(self, sim, app, topology):
+
+        services = app.services
+        id_and_type = nx.get_node_attributes(topology.G, "type")
+        for id, type in id_and_type.items():
+            if type == "MM":
+                self.MM_nodes_ids.append(id)
+            elif type == "GW":
+                self.GW_nodes_ids.append(id)
+            elif type == "T":
+                self.T_nodes_ids.append(id)
+            elif type == "M":
+                self.M_nodes_ids.append(id)
+
+        sim.deploy_module(app.name, "GW", services["GW"], self.GW_nodes_ids)
+        sim.deploy_module(app.name, "MM", services["MM"], self.MM_nodes_ids)
+        # MARKO: POPULATION -> Random T node as DC sink
+        sim.deploy_sink(app.name, list(rand.choice(self.T_nodes_ids), "DC"))
+
+        # Node with biggest degree in a region
+        for region in topology.my_as_graph.regions.keys():
+            nodes = topology.my_as_graph.regions[region].intersection(self.M_nodes_ids)
+            sorted(nodes.degree, reverse=True)
+            for module in app.data:
+                for key in module:
+                    if key == 'NR':  # tu se da jos definirati ima li ili ne kompresiju.
+                        if self.has_compression:
+                            module["decompression_after"].append(nodes[0])  # Dodaj attribut da ima compresiju
+            sim.deploy_module(app.name, "NR", services["NR"], list(nodes[0]))
 
 
 

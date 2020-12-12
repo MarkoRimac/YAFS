@@ -39,6 +39,9 @@ class Topology:
         for key in self.nodeAttributes:
             self.nodeAttributes[key]["uptime"] = (0, None)
 
+    def add_as_graph_link(self, my_as_graph_gen):
+        self.my_as_graph = my_as_graph_gen
+
     def get_edges(self):
         """
         Returns:
