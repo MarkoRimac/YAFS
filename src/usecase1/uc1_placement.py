@@ -62,7 +62,7 @@ class Uc1_placement(Placement):
         sim.deploy_module(app.name, "MM", services["MM"], self.MM_nodes_ids) # SOURCE
         DC_nodes = list()
         DC_nodes.append(rand.choice(self.T_nodes_ids))
-        sim.deploy_module(app.name, "DC", services["DC"], DC_nodes) # SOURCE
+        sim.deploy_module(app.name, "DC", services["DC"], DC_nodes) # SINK
         # MARKO: POPULATION -> Random T node as DC sink
         #sim.deploy_sink(app.name, DC_nodes[0], "DC")
 

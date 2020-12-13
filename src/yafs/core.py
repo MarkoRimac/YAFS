@@ -404,7 +404,9 @@ class Sim:
             """
             It computes the service time in processing a message and record this event
             """
-            if module in self.apps[app].get_sink_modules():
+            if module in self.apps[app].get_sink_modules() and message.name != "PROC_DC_m" and message.name != "NR_PROC_m":
+                # MARKO: DODAO SAM GORE DVA AND -> JER ZELIM DA SE SINK ACTUALLY RADI NESTO PRIJE NEGO STO SE SHUTDOWNA. DAKLE ZELIM DA DC "trosi" vrijeme NA SPREMANJE PODATAKA!
+                # DA NISAM TO DODAO Ovdje bi simtime bila 0
                 """
                 The module is a SINK (Actuactor)
                 """
@@ -547,7 +549,7 @@ class Sim:
         """
         It generates a DES process associated to a compute module
         """
-        self.recieved_MM_messages = set()
+        recieved_MM_messages = set()
         self.logger.debug("Added_Process - Module Consumer: %s\t#DES:%i" % (module, ides))
         while not self.stop and self.des_process_running[ides]:
             if self.des_process_running[ides]:
@@ -620,8 +622,10 @@ class Sim:
                                 # MARKO: FILTRACIJA PODATAKA NA NR-u
                                 if module != "NR":
                                     self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                elif module == "NR" and msg.id not in self.recieved_MM_messages:
-                                    self.recieved_MM_messages.add(msg.id)
+                                elif module == "NR" and msg_out.name == "NR_DECOMP_m" and msg.id not in recieved_MM_messages:
+                                    recieved_MM_messages.add(msg.id)
+                                    self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
+                                elif module == "NR" and msg_out.name == "NR_PROC_m":
                                     self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
                                 # else do nothing.
                                 else:
