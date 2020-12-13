@@ -535,6 +535,7 @@ class Sim:
                     "(App:%s#DES:%i#%s)\tModule - Generating Message:\t%s" % (app_name, idDES, module, message.name))
                 msg = copy.copy(message)
                 msg.timestamp = self.env.now
+                msg.id = self.__getIDMessage()
                 msg.original_DES_src = idDES
 
                 self.__send_message(app_name, msg, idDES,self.SOURCE_METRIC)
