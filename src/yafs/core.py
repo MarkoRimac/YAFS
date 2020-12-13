@@ -338,7 +338,6 @@ class Sim:
             measures["node"][key] = {}
 
         for edge in self.topology.get_edges():
-            x=self.topology.get_edge(edge)[self.topology.LINK_PR]
             measures["link"][edge] = {Topology.LINK_PR: self.topology.get_edge(edge)[self.topology.LINK_PR],
                                       Topology.LINK_BW: self.topology.get_edge(edge)[self.topology.LINK_BW]}
         return measures
@@ -543,139 +542,6 @@ class Sim:
         """
         It generates a DES process associated to a compute module
         """
-        self.logger.debug("Added_Process - Module Consumer: %s\t#DES:%i" % (module, ides))
-        self.recieved_MM_messages = list()
-        while not self.stop and self.des_process_running[ides]:
-            if self.des_process_running[ides]:
-                msg = yield self.consumer_pipes["%s%s%i"%(app_name,module,ides)].get()
-                # One pipe for each module name
-
-                m = self.apps[app_name].services[module]
-
-                # for ser in m:
-                #     if "message_in" in ser.keys():
-                #         try:
-                #             print "\t\t M_In: %s  -> M_Out: %s " % (ser["message_in"].name, ser["message_out"].name)
-                #         except:
-                #             print "\t\t M_In: %s  -> M_Out: [NOTHING] " % (ser["message_in"].name)
-
-                # print "Registers len: %i" %len(register_consumer_msg)
-                doBefore = False
-                for register in register_consumer_msg:
-                    if msg.name == register["message_in"].name:
-                        # The message can be treated by this module
-                        """
-                        Processing the message
-                        
-                        """
-                        # if ides == 3:
-                        #     print "Consumer Message: %d " % self.env.now
-                        #     print "MODULE DES: ",ides
-                        #     print "id ",msg.id
-                        #     print "name ",msg.name
-                        #     print msg.path
-                        #     print msg.dst_int
-                        #     print msg.timestamp
-                        #     print msg.dst
-                        #
-                        #     print "-" * 30
-
-                        #The module only computes this type of message one time.
-                        #It records once # MARKO: Modul će dobiti npr p oruke sa istom source porukom - to će obraiditi samo jednom, a onda ce dest biti razliciti za svaku poruku! To je ono više istih source poruka!
-                        # UBITI, jedna input poruka, na više servisa može ići!
-                        if not doBefore:
-                            self.logger.debug(
-                                "(App:%s#DES:%i#%s)\tModule - Recording the message:\t%s" % (app_name, ides, module, msg.name))
-                            type = self.NODE_METRIC
-
-                            service_time = self.__update_node_metrics(app_name, module, msg, ides, type)
-
-                            yield self.env.timeout(service_time)
-                            doBefore = True
-
-                        """
-                        Transferring the message
-                        """
-                        if not register["message_out"]:
-                            """
-                            Sink behaviour (nothing to send)
-                            """
-                            self.logger.debug(
-                                "(App:%s#DES:%i#%s)\tModule - Sink Message:\t%s" % (app_name, ides, module, msg.name))
-                            continue
-                        else:
-                            # Ovde handlamo koju poruku cemo poslati.
-                            if register["dist"](**register["param"]): ### THRESHOLD DISTRIBUTION to Accept the message from source
-                                if not register["module_dest"]:
-                                    # it is not a broadcasting message
-
-                                    msg_out = copy.copy(register["message_out"])
-                                    id_node = self.alloc_DES[ides] # Gdje se izvodi ovaj DES
-
-                                    # MARKO: DODAJ SVOJE. MOJI Delay-evi!
-                                    # GW -> DEKOMPRESIJA ili no DEKOMPRESIJA
-                                    if module[0] == "GW":
-                                        if module["has_decompression"].__contains__(id_node):
-
-                                            service_time = self.__update_node_metrics(app_name, module, msg, ides, type)
-                                            yield self.env.timeout(service_time)
-
-                                            self.logger.debug("(App:%s#DES:%i#%s)\tModule - Transmit Message:\t%s" % (
-                                                app_name, ides, module, register["message_out"].name))
-
-                                            msg_out = copy.copy(register["message_out"])
-                                            msg_out.timestamp = self.env.now
-                                            msg_out.id = msg.id # MARKO: message id se prenosi se cijelo vrijeme od sourca do targeta - vazno za filtraciju!
-                                            msg_out.last_idDes = copy.copy(msg.last_idDes)
-                                            msg_out.last_idDes.append(ides)
-
-                                            self.__send_message(app_name, msg_out,ides, self.FORWARD_METRIC)
-                                        else:
-                                            a=0
-                                            #  DO NOT SEND ANYTHING! Let OTHER Service send it. (that has msg out of that type)
-                                    else:
-
-                                        self.logger.debug("(App:%s#DES:%i#%s)\tModule - Transmit Message:\t%s" % (
-                                            app_name, ides, module, register["message_out"].name))
-
-                                        msg_out = copy.copy(register["message_out"])
-                                        msg_out.timestamp = self.env.now
-                                        msg_out.id = msg.id  # MARKO: message id se prenosi se cijelo vrijeme od sourca do targeta - vazno za filtraciju!
-                                        msg_out.last_idDes = copy.copy(msg.last_idDes)
-                                        msg_out.last_idDes.append(ides)
-
-                                        # MARKO: FILTRACIJA PODATAKA NA NR-u
-                                        if module[0] != "NR":
-                                            self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                        elif module[0] == "NR" and msg.id not in self.recieved_MM_messages:
-                                            self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                            self.recieved_MM_messages.append(msg.id)
-                                        # else do nothing.
-                                else:
-                                    # it is a broadcasting message
-                                    self.logger.debug("(App:%s#DES:%i#%s)\tModule - Broadcasting Message:\t%s" % (
-                                        app_name, ides, module, register["message_out"].name))
-
-                                    msg_out = copy.copy(register["message_out"])
-                                    msg_out.timestamp = self.env.now
-                                    msg_out.last_idDes = copy.copy(msg.last_idDes)
-                                    msg_out.id = msg.id
-                                    msg_out.last_idDes = msg.last_idDes.append(ides)
-                                    for idx, module_dst in enumerate(register["module_dest"]):
-                                        if random.random() <= register["p"][idx]:
-                                            self.__send_message(app_name, msg_out, ides,self.FORWARD_METRIC)
-
-                            else:
-                                self.logger.debug("(App:%s#DES:%i#%s)\tModule - Stopped Message:\t%s" % (
-                                    app_name, ides, module, register["message_out"].name))
-
-        self.logger.debug("STOP_Process - Module Consumer: %s\t#DES:%i" % (module, ides))
-
-
-    def __add_consumer_module(self, ides, app_name, module, register_consumer_msg):
-        """
-        It generates a DES process associated to a compute module
-        """
         self.recieved_MM_messages = set()
         self.logger.debug("Added_Process - Module Consumer: %s\t#DES:%i" % (module, ides))
         while not self.stop and self.des_process_running[ides]:
@@ -719,12 +585,6 @@ class Sim:
                                 "(App:%s#DES:%i#%s)\tModule - Recording the message:\t%s" % (app_name, ides, module, msg.name))
                             type = self.NODE_METRIC
 
-                            # TODO: SLUCAJ1
-                            if msg.id in self.recieved_MM_messages:
-                                msg.inst = msg.inst - 6 # Makni dio za Dekompresiju jer je ova poruka "filtrirana"
-                                # TODO: Parametriziraj broj 6 kroz nesto...
-                                # TODO: Nekako predaj onaj N parametarr, mozda kros message?
-
                             service_time = self.__update_node_metrics(app_name, module, msg, ides, type)
 
                             yield self.env.timeout(service_time)
@@ -741,41 +601,39 @@ class Sim:
                                 "(App:%s#DES:%i#%s)\tModule - Sink Message:\t%s" % (app_name, ides, module, msg.name))
                             continue
                         else:
-                            if register["dist"](**register["param"]): ### THRESHOLD DISTRIBUTION to Accept the message from source
-                                if not register["module_dest"]:
+                            if not register["module_dest"]:
+                                # it is not a broadcasting message
+                                self.logger.debug("(App:%s#DES:%i#%s)\tModule - Transmit Message:\t%s" % (
+                                    app_name, ides, module, register["message_out"].name))
 
-                                    msg_out = copy.copy(register["message_out"])
-                                    msg_out.timestamp = self.env.now
-                                    msg_out.last_idDes = copy.copy(msg.last_idDes)
-                                    msg_out.id = msg.id
-                                    msg_out.last_idDes = msg.last_idDes.append(ides)
+                                msg_out = copy.copy(register["message_out"])
+                                msg_out.timestamp = self.env.now
+                                msg_out.id = msg.id
+                                msg_out.last_idDes = copy.copy(msg.last_idDes)
+                                msg_out.last_idDes.append(ides)
 
-                                    if module[0] != "NR":
-                                        self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                    elif module[0] == "NR" and msg.id not in self.recieved_MM_messages:
-                                        self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                        self.recieved_MM_messages.add(msg.id)
-                                    else:
-                                        self.logger.debug("(App:%s#DES:%i#%s)\tModule - Filtering message id:\t%i" % (
-                                            app_name, ides, module, msg.id))
-
-                                else:
-                                    # it is a broadcasting message
-                                    self.logger.debug("(App:%s#DES:%i#%s)\tModule - Broadcasting Message:\t%s" % (
-                                        app_name, ides, module, register["message_out"].name))
-
-                                    msg_out = copy.copy(register["message_out"])
-                                    msg_out.timestamp = self.env.now
-                                    msg_out.last_idDes = copy.copy(msg.last_idDes)
-                                    msg_out.id = msg.id
-                                    msg_out.last_idDes = msg.last_idDes.append(ides)
-                                    for idx, module_dst in enumerate(register["module_dest"]):
-                                        if random.random() <= register["p"][idx]:
-                                            self.__send_message(app_name, msg_out, ides,self.FORWARD_METRIC)
+                                # MARKO: FILTRACIJA PODATAKA NA NR-u
+                                if module[0] != "NR":
+                                    self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
+                                elif module[0] == "NR" and msg.id not in self.recieved_MM_messages:
+                                    self.recieved_MM_messages.add(msg.id)
+                                    self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
+                                # else do nothing.
 
                             else:
-                                self.logger.debug("(App:%s#DES:%i#%s)\tModule - Stopped Message:\t%s" % (
+                                # it is a broadcasting message
+                                self.logger.debug("(App:%s#DES:%i#%s)\tModule - Broadcasting Message:\t%s" % (
                                     app_name, ides, module, register["message_out"].name))
+
+                                msg_out = copy.copy(register["message_out"])
+                                msg_out.timestamp = self.env.now
+                                msg_out.last_idDes = copy.copy(msg.last_idDes)
+                                msg_out.id = msg.id
+                                msg_out.last_idDes = msg.last_idDes.append(ides)
+                                for idx, module_dst in enumerate(register["module_dest"]):
+                                    if random.random() <= register["p"][idx]:
+                                        self.__send_message(app_name, msg_out, ides,self.FORWARD_METRIC)
+
 
         self.logger.debug("STOP_Process - Module Consumer: %s\t#DES:%i" % (module, ides))
 
@@ -949,6 +807,7 @@ class Sim:
         self.des_process_running[idDES] = True
         self.env.process(self.__add_source_module(idDES, app_name, module,msg, distribution))
         self.alloc_DES[idDES] = id_node
+        self.alloc_source[idDES] = {"id": id_node, "app": app_name, "name": module, "module": module} # MARKO DODANO!
         return idDES
 
     # idsrc = sim.deploy_module(app_name, module, id_node, register_consumer_msg)

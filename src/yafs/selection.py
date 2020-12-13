@@ -114,15 +114,27 @@ class First_ShortestPath(Selection):
         #Among all possible path we choose the smallest
         bestPath = []
         bestDES = []
-        print (DES_dst)
-        for des in DES_dst:
-            dst_node = alloc_DES[des]
-            # print "DES Node %i " %dst_node
+        #print (DES_dst)
 
-            path = list(nx.shortest_path(sim.topology.G, source=node_src, target=dst_node))
-            bestPath = [path]
-            bestDES  = [des]
-            print (path)
+        if message.dst == message.src: # Idi u sebe! Za poruke tipa NR->NR
+            bestPath = [[node_src]]
+            bestDES = [from_des]
+        elif message.dst == "GW":
+            for des in DES_dst:
+                dst_node = alloc_DES[des]
+                # print "DES Node %i " %dst_node
+                paths = list(nx.all_simple_paths(sim.topology.G, source=node_src, target=dst_node,cutoff=1))  # Distance izmedu MM i GW je samo 1!
+                for path in paths:
+                    bestPath.append(path)
+                    bestDES.append(des)
+        else:
+            for des in DES_dst:
+                dst_node = alloc_DES[des]
+                # print "DES Node %i " %dst_node
 
+                path = list(nx.shortest_path(sim.topology.G, source=node_src, target=dst_node))
+                bestPath = [path]
+                bestDES  = [des]
+                #print (path)
 
         return bestPath,bestDES

@@ -30,53 +30,49 @@ class Uc1_placement(Placement):
         topology = sim.topology
         services = app.services
         id_and_type = nx.get_node_attributes(topology.G, "type")
+        data = app.data
+
         for id, type in id_and_type.items():
             if type == "MM":
                 self.MM_nodes_ids.append(id)
+                for x in data:
+                    for m in x:
+                        if m == "MM":
+                            topology.G.add_node(id, IPT=x[m]['IPT'], RAM=x[m]['RAM'])
             elif type == "GW":
                 self.GW_nodes_ids.append(id)
+                for x in data:
+                    for m in x:
+                        if m == "GW":
+                            topology.G.add_node(id, IPT=x[m]['IPT'], RAM=x[m]['RAM'])
             elif type == "T":
                 self.T_nodes_ids.append(id)
+                for x in data:
+                    for m in x:
+                        if m == "DC":
+                            topology.G.add_node(id, IPT=x[m]['IPT'], RAM=x[m]['RAM'])
             elif type == "M":
                 self.M_nodes_ids.append(id)
+                for x in data:
+                    for m in x:
+                        if m == "NR":
+                            topology.G.add_node(id, IPT=x[m]['IPT'], RAM=x[m]['RAM'])
 
         sim.deploy_module(app.name, "GW", services["GW"], self.GW_nodes_ids)
-        sim.deploy_module(app.name, "MM", services["MM"], self.MM_nodes_ids)
+        sim.deploy_module(app.name, "MM", services["MM"], self.MM_nodes_ids) # SOURCE
+        DC_nodes = list()
+        DC_nodes.append(rand.choice(self.T_nodes_ids))
+        sim.deploy_module(app.name, "DC", services["DC"], DC_nodes) # SOURCE
         # MARKO: POPULATION -> Random T node as DC sink
-        sim.deploy_sink(app.name, "DC", (rand.choice(self.T_nodes_ids)))
+        #sim.deploy_sink(app.name, DC_nodes[0], "DC")
 
         # MARKO: PLACEMENT
         # Node with biggest degree in a region
         for region in topology.my_as_graph.regions.keys():
             nodes = topology.my_as_graph.regions[region].intersection(self.M_nodes_ids)
             result = sorted(topology.G.degree(nodes), key=lambda x: x[1], reverse=True)
-            sim.deploy_module(app.name, "NR", services["NR"], list(result[0]))
-
-    def testing(self, sim, app, topology):
-
-        services = app.services
-        id_and_type = nx.get_node_attributes(topology.G, "type")
-        for id, type in id_and_type.items():
-            if type == "MM":
-                self.MM_nodes_ids.append(id)
-            elif type == "GW":
-                self.GW_nodes_ids.append(id)
-            elif type == "T":
-                self.T_nodes_ids.append(id)
-            elif type == "M":
-                self.M_nodes_ids.append(id)
-
-        sim.deploy_module(app.name, "GW", services["GW"], self.GW_nodes_ids)
-        sim.deploy_module(app.name, "MM", services["MM"], self.MM_nodes_ids)
-        # MARKO: POPULATION -> Random T node as DC sink
-        sim.deploy_sink(app.name, list(rand.choice(self.T_nodes_ids), "DC"))
-
-        # Node with biggest degree in a region
-        for region in topology.my_as_graph.regions.keys():
-            nodes = topology.my_as_graph.regions[region].intersection(self.M_nodes_ids)
-            sorted(nodes.degree, reverse=True)
-            sim.deploy_module(app.name, "NR", services["NR"], list(nodes[0]))
-
-
+            NR_nodes = list()
+            NR_nodes.append(result[0][0]) # MARKO: Za sada samo jedan NR cvor po regiji
+            sim.deploy_module(app.name, "NR", services["NR"], NR_nodes)
 
 
