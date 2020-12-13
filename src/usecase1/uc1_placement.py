@@ -68,11 +68,16 @@ class Uc1_placement(Placement):
 
         # MARKO: PLACEMENT
         # Node with biggest degree in a region
+        taken_nodes = list()
         for region in topology.my_as_graph.regions.keys():
             nodes = topology.my_as_graph.regions[region].intersection(self.M_nodes_ids)
             result = sorted(topology.G.degree(nodes), key=lambda x: x[1], reverse=True)
+            if result[0][0] in taken_nodes: # MARKO: Ovaj NR cvor se nalazi u vise regija. Stoga necemo dodavati novi NR na taj cvor! Taj NR cvor ce sluziti dvije regije
+                continue
+            taken_nodes.append(result[0][0])
             NR_nodes = list()
             NR_nodes.append(result[0][0]) # MARKO: Za sada samo jedan NR cvor po regiji
+            taken_nodes.append(result[0][0])
             sim.deploy_module(app.name, "NR", services["NR"], NR_nodes)
 
 

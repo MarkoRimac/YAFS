@@ -198,7 +198,11 @@ class Sim:
 
                 # print "MESSAGES"
                 #May be, the selector of path decides broadcasting multiples paths
+                counter = 0
                 for idx,path in enumerate(paths):
+                    counter = counter + 1
+                    if counter > 1:
+                        a = 0
                     msg = copy.copy(message)
                     msg.path = copy.copy(path)
                     msg.app_name = app_name
@@ -613,12 +617,15 @@ class Sim:
                                 msg_out.last_idDes.append(ides)
 
                                 # MARKO: FILTRACIJA PODATAKA NA NR-u
-                                if module[0] != "NR":
+                                if module != "NR":
                                     self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                elif module[0] == "NR" and msg.id not in self.recieved_MM_messages:
+                                elif module == "NR" and msg.id not in self.recieved_MM_messages:
                                     self.recieved_MM_messages.add(msg.id)
                                     self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
                                 # else do nothing.
+                                else:
+                                    self.logger.debug("(App:%s#DES:%i#%s)\tModule - Filtering Message:\t%s" % (
+                                        app_name, ides, module, register["message_out"].name))
 
                             else:
                                 # it is a broadcasting message

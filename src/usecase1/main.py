@@ -34,12 +34,7 @@ def main(data):
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
-    s.run(1000,show_progress_monitor=False)
-
-    finished = 0
-
-
-
+    s.run(5000,show_progress_monitor=False)
 
 def check_bigger_than_zero(value):
     ival = int(value)
