@@ -1,4 +1,5 @@
 import networkx as nx
+import random as rand
 import argparse
 import json
 from topology import Topology
@@ -13,6 +14,7 @@ from yafs.core import Sim
 
 def main(data):
 
+    rand.seed(data.seed)  # has to be an object.
     """
     TOPOLOGY creation
     """
