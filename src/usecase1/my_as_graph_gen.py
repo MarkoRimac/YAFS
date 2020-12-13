@@ -102,7 +102,6 @@ class MY_as_graph_gen:
                           #  svim regijama
 
         # Moji parametri:
-        rand.seed(seed)  # has to be an object.
         self.seed = seed
         self.nb_regions = nb_regions
 
@@ -117,11 +116,12 @@ class MY_as_graph_gen:
 
         self.nb_mm = nb_mm
         self.nb_mm_variance = nb_mm_variance
+        self.total_num_of_mm = 0
 
         # Code static help variables.
         self.reg_count = 0
 
-        # Configurable constants!
+        # MARKO: Configurable constants!
         # in MBits/s
         self.LoRaWAN_databit_translation = {0: (0.000250, 12), 1: (0.000440, 11), 2: (0.000980, 10), 3: (0.001760, 9),
                                        4: (0.003125, 8), 5: (0.005470, 7), 6: (0.011000, 7)}
@@ -313,6 +313,7 @@ class MY_as_graph_gen:
         # Add MM devices to gateways
         for node in self.nodes["GW"]:
             x = abs(int(math.floor(rand.normalvariate(self.nb_mm, self.nb_mm_variance))))
+            self.total_num_of_mm += x
             for _ in range(x):
                 self.nodes['MM'].add(i)
                 self.G.add_node(i, type="MM")

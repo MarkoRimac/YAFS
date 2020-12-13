@@ -64,7 +64,7 @@ class Uc1_application(object):
         # sink module added later in placement
 
         # MARKO: Population -> Sink doesn't have "service module", no "DES process"
-        distribution = DeterministicDistribution_mm_uc1(15, name="deterministicMM")
+        distribution = DeterministicDistribution_mm_uc1(15, topology.my_as_graph.total_num_of_mm, name="deterministicMM")
         self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)
         self.app.add_source_messages(MM_GW_m)
 
