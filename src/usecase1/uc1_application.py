@@ -24,8 +24,8 @@ class Uc1_application(object):
 
         # TODO: Check parameters, the P and M in docs, are those scalings?
         self.app.set_modules([
-            {"MM": {"RAM": self.M, "IPT": self.P, "Type":Application.TYPE_SOURCE}},
-            {"GW": {"RAM": 100*self.M, "IPT": 20*self.P, "Type":Application.TYPE_MODULE}}, # Hack za predavanje parametarta u yafs core. Ne znam kako dva yield processa u yafsu simulirati, on nije zamisljen da tako radi.
+            {"MM": {"RAM": self.M, "IPT": self.P, "Type":Application.TYPE_SOURCE}}, # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
+            {"GW": {"RAM": 100*self.M, "IPT": 20*self.P, "Type":Application.TYPE_MODULE}},
             {"NR": {"RAM": 60*self.P, "IPT": 500*self.P, "Type":Application.TYPE_MODULE}},
             {"DC": {"RAM": 1000*self.P, "IPT": 10000*self.P, "Type":Application.TYPE_SINK}},
         ])
@@ -58,15 +58,18 @@ class Uc1_application(object):
         self.app.add_service_module("GW", MM_GW_m, GW_NR_m)
         self.app.add_service_module("NR", GW_NR_m, NR_DECOMP_m)
         self.app.add_service_module("NR", NR_DECOMP_m, NR_PROC_m)
-        #self.app.add_service_module("NR", NR_NR_m, NR_NR_m) # TODO: maybe unnecessary
         self.app.add_service_module("DC", NR_PROC_m, PROC_DC_m)
-        self.app.add_service_module("DC", PROC_DC_m) # sending message is a dummy. THIS IS A SINK MODULE!
+
         # sink module added later in placement
 
-        # MARKO: Population -> Sink doesn't have "service module", no "DES process"
+        """ POPULATION """
+        self.app.add_service_module("DC", PROC_DC_m) # SINK MODUL!
+
         distribution = DeterministicDistribution_mm_uc1(15, topology.my_as_graph.total_num_of_mm, name="deterministicMM")
         self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)
         self.app.add_source_messages(MM_GW_m)
+
+        """ END OF POPULATION"""
 
     def __calcOktets(self, ratio):
         return ratio * self.N

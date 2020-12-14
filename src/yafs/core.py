@@ -537,7 +537,7 @@ class Sim:
                     "(App:%s#DES:%i#%s)\tModule - Generating Message:\t%s" % (app_name, idDES, module, message.name))
                 msg = copy.copy(message)
                 msg.timestamp = self.env.now
-                msg.id = self.__getIDMessage()
+                msg.id = self.__getIDMessage() # MARKO: DODAO ovdje jer u .csv fileu su inace sve poruke bile id=-1
                 msg.original_DES_src = idDES
 
                 self.__send_message(app_name, msg, idDES,self.SOURCE_METRIC)
@@ -620,11 +620,15 @@ class Sim:
                                 msg_out.last_idDes.append(ides)
 
                                 # MARKO: FILTRACIJA PODATAKA NA NR-u
+                                # mozda se da u selection dijelu "cuvati poruke koje su primljene" i onda ih samo izbaciti! Ali to onda trazi opet promjenu logga u
+                                # yafsu, jer na tom dijelu se to opisuje kao "uncrachable destination" @Line 182
                                 if module != "NR":
                                     self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
                                 elif module == "NR" and msg_out.name == "NR_DECOMP_m" and msg.id not in recieved_MM_messages:
                                     recieved_MM_messages.add(msg.id)
                                     self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
+                                    # Poruka se salje opet na NR. WARNING! Poruka se stavlja u queue na taj proces, biti ce obradena tek kada se druge poruke primljene od GW obrade, ovo nije dobro! Treba workaround!
+                                    # Da li stvoriti jos jedan DES proces? Moze se tako napraviti, no problem je kako share-ati RAM i IPT izmedu ta dva procesa? Buduci da se odvijaju na istom fizickom cvoru, u ovom slucaju NR-u
                                 elif module == "NR" and msg_out.name == "NR_PROC_m":
                                     self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
                                 # else do nothing.
@@ -819,7 +823,6 @@ class Sim:
         self.des_process_running[idDES] = True
         self.env.process(self.__add_source_module(idDES, app_name, module,msg, distribution))
         self.alloc_DES[idDES] = id_node
-        self.alloc_source[idDES] = {"id": id_node, "app": app_name, "name": module, "module": module} # MARKO DODANO!
         return idDES
 
     # idsrc = sim.deploy_module(app_name, module, id_node, register_consumer_msg)

@@ -147,7 +147,8 @@ class Application:
             if type == self.TYPE_SOURCE:
                 self.modules_src.append(name)
             elif type == self.TYPE_SINK:
-                self.modules_sink.append(name)
+                #self.modules_sink = name # MARKO: Ovo je bilo u originalnom kodu. Nema smisla, bar po meni. Fix bi bio obo ispod
+                self.modules_sink.append(name) # MARKO: dodao sam ovu liniju kao zamjenu za ovo gore.
 
             self.modules.append(name)
 
