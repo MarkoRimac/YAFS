@@ -27,7 +27,7 @@ class Uc1_application(object):
             {"MM": {"RAM": self.M, "IPT": self.P, "Type":Application.TYPE_SOURCE}}, # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
             {"GW": {"RAM": 100*self.M, "IPT": 20*self.P, "Type":Application.TYPE_MODULE}},
             {"NR": {"RAM": 60*self.P, "IPT": 500*self.P, "Type":Application.TYPE_MODULE}},
-            {"DC": {"RAM": 1000*self.P, "IPT": 10000*self.P, "Type":Application.TYPE_SINK}},
+            {"DC": {"RAM": 1000*self.P, "IPT": 10000*self.P, "Type":Application.TYPE_MODULE}}, # Nije ti TYPE_SINK jer sadrzi i druge servise na sebi, nije PURE SINK!!! Ako stavimo da je TYPE_SINK, svaka poruka koja ude u ovaj cvor ce zavristi u "smecu", tj sinku
         ])
 
         # DECOMP -> decompression, PROC -> DataProcessing
@@ -60,10 +60,11 @@ class Uc1_application(object):
         self.app.add_service_module("NR", NR_DECOMP_m, NR_PROC_m)
         self.app.add_service_module("DC", NR_PROC_m, PROC_DC_m)
 
+
         # sink module added later in placement
 
         """ POPULATION """
-        self.app.add_service_module("DC", PROC_DC_m) # SINK MODUL!
+        self.app.add_service_module("DC", PROC_DC_m)  # Ide na timeout za storing, i dalje je sink!
 
         distribution = DeterministicDistribution_mm_uc1(15, topology.my_as_graph.total_num_of_mm, name="deterministicMM")
         self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)

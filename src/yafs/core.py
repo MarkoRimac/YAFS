@@ -198,11 +198,7 @@ class Sim:
 
                 # print "MESSAGES"
                 #May be, the selector of path decides broadcasting multiples paths
-                counter = 0
                 for idx,path in enumerate(paths):
-                    counter = counter + 1
-                    if counter > 1:
-                        a = 0
                     msg = copy.copy(message)
                     msg.path = copy.copy(path)
                     msg.app_name = app_name
@@ -404,9 +400,7 @@ class Sim:
             """
             It computes the service time in processing a message and record this event
             """
-            if module in self.apps[app].get_sink_modules() and message.name != "PROC_DC_m" and message.name != "NR_PROC_m":
-                # MARKO: DODAO SAM GORE DVA AND -> JER ZELIM DA SE SINK ACTUALLY RADI NESTO PRIJE NEGO STO SE SHUTDOWNA. DAKLE ZELIM DA DC "trosi" vrijeme NA SPREMANJE PODATAKA!
-                # DA NISAM TO DODAO Ovdje bi simtime bila 0
+            if module in self.apps[app].get_sink_modules():
                 """
                 The module is a SINK (Actuactor)
                 """
