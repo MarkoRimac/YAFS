@@ -66,9 +66,11 @@ class Uc1_placement(Placement):
                 if result[index][0] in taken_nodes:
                     continue  # Trazi sljedeci highest degree node u toj regiji, jer je ovaj prvi vec zauzet!
                 taken_nodes.append(result[index][0])
-                sim.deploy_module(app.name, "NR", services["NR"], [result[index][0]])
+                sim.deploy_module(app.name, "NR_FILT", services["NR_FILT"], [result[index][0]])
+                sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [result[index][0]])
                 sim.deploy_sink(app.name, result[index][0], "NR_SINK") #  Dodaj DES process za sink!
-                self.__link_module_attribute_with_topology_nodes("NR", [result[index][0]], topology, app)
+                self.__link_module_attribute_with_topology_nodes("NR_FILT", [result[index][0]], topology, app)
+                self.__link_module_attribute_with_topology_nodes("NR_DECOMP", [result[index][0]], topology, app)
                 break
 
     def __link_module_attribute_with_topology_nodes(self, module, node_ids,topology, app):
