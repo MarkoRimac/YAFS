@@ -602,47 +602,38 @@ class Sim:
                                 "(App:%s#DES:%i#%s)\tModule - Sink Message:\t%s" % (app_name, ides, module, msg.name))
                             continue
                         else:
-                            if not register["module_dest"]:
-                                # it is not a broadcasting message
-                                self.logger.debug("(App:%s#DES:%i#%s)\tModule - Transmit Message:\t%s" % (
-                                    app_name, ides, module, register["message_out"].name))
-
-                                msg_out = copy.copy(register["message_out"])
-                                msg_out.timestamp = self.env.now
-                                msg_out.id = msg.id
-                                msg_out.last_idDes = copy.copy(msg.last_idDes)
-                                msg_out.last_idDes.append(ides)
-
-                                # MARKO: FILTRACIJA PODATAKA NA NR-u
-                                # mozda se da u selection dijelu "cuvati poruke koje su primljene" i onda ih samo izbaciti! Ali to onda trazi opet promjenu logga u
-                                # yafsu, jer na tom dijelu se to opisuje kao "uncrachable destination" @Line 182
-                                if module != "NR":
-                                    self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                elif module == "NR" and msg_out.name == "NR_DECOMP_m" and msg.id not in recieved_MM_messages:
-                                    recieved_MM_messages.add(msg.id)
-                                    self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                    # Poruka se salje opet na NR. WARNING! Poruka se stavlja u queue na taj proces, biti ce obradena tek kada se druge poruke primljene od GW obrade, ovo nije dobro! Treba workaround!
-                                    # Da li stvoriti jos jedan DES proces? Moze se tako napraviti, no problem je kako share-ati RAM i IPT izmedu ta dva procesa? Buduci da se odvijaju na istom fizickom cvoru, u ovom slucaju NR-u
-                                elif module == "NR" and msg_out.name == "NR_PROC_m":
-                                    self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
-                                # else do nothing.
-                                else:
-                                    self.logger.debug("(App:%s#DES:%i#%s)\tModule - Filtering Message:\t%s" % (
+                            # MARKO: Ovaj if sam maknuo, ne prolazi jer ga nigdje nisam definirao, a ne kuzim bas smisao zasto bi se moralo definirati.
+                            #if register["dist"](**register["param"]):  ### THRESHOLD DISTRIBUTION to Accept the message from source
+                                if not register["module_dest"]:
+                                    # it is not a broadcasting message
+                                    self.logger.debug("(App:%s#DES:%i#%s)\tModule - Transmit Message:\t%s" % (
                                         app_name, ides, module, register["message_out"].name))
 
-                            else:
-                                # it is a broadcasting message
-                                self.logger.debug("(App:%s#DES:%i#%s)\tModule - Broadcasting Message:\t%s" % (
-                                    app_name, ides, module, register["message_out"].name))
+                                    msg_out = copy.copy(register["message_out"])
+                                    msg_out.timestamp = self.env.now
+                                    msg_out.id = msg.id
+                                    msg_out.last_idDes = copy.copy(msg.last_idDes)
+                                    msg_out.last_idDes.append(ides)
 
-                                msg_out = copy.copy(register["message_out"])
-                                msg_out.timestamp = self.env.now
-                                msg_out.last_idDes = copy.copy(msg.last_idDes)
-                                msg_out.id = msg.id
-                                msg_out.last_idDes = msg.last_idDes.append(ides)
-                                for idx, module_dst in enumerate(register["module_dest"]):
-                                    if random.random() <= register["p"][idx]:
-                                        self.__send_message(app_name, msg_out, ides,self.FORWARD_METRIC)
+
+                                    self.__send_message(app_name, msg_out, ides, self.FORWARD_METRIC)
+
+                                else:
+                                    # it is a broadcasting message
+                                    self.logger.debug("(App:%s#DES:%i#%s)\tModule - Broadcasting Message:\t%s" % (
+                                        app_name, ides, module, register["message_out"].name))
+
+                                    msg_out = copy.copy(register["message_out"])
+                                    msg_out.timestamp = self.env.now
+                                    msg_out.last_idDes = copy.copy(msg.last_idDes)
+                                    msg_out.id = msg.id
+                                    msg_out.last_idDes = msg.last_idDes.append(ides)
+                                    for idx, module_dst in enumerate(register["module_dest"]):
+                                        if random.random() <= register["p"][idx]:
+                                            self.__send_message(app_name, msg_out, ides,self.FORWARD_METRIC)
+                            #else:
+                            #    self.logger.debug("(App:%s#DES:%i#%s)\tModule - Stopped Message:\t%s" % (
+                            #        app_name, ides, module, register["message_out"].name))
 
 
         self.logger.debug("STOP_Process - Module Consumer: %s\t#DES:%i" % (module, ides))

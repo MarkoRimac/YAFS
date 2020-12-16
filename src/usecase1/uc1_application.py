@@ -27,7 +27,8 @@ class Uc1_application(object):
             {"MM": {"RAM": self.M, "IPT": self.P, "Type":Application.TYPE_SOURCE}}, # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
             {"GW": {"RAM": 100*self.M, "IPT": 20*self.P, "Type":Application.TYPE_MODULE}},
             {"NR": {"RAM": 60*self.P, "IPT": 500*self.P, "Type":Application.TYPE_MODULE}},
-            {"DC": {"RAM": 1000*self.P, "IPT": 10000*self.P, "Type":Application.TYPE_MODULE}}, # Nije ti TYPE_SINK jer sadrzi i druge servise na sebi, nije PURE SINK!!! Ako stavimo da je TYPE_SINK, svaka poruka koja ude u ovaj cvor ce zavristi u "smecu", tj sinku
+            {"NR_SINK": {"Type":Application.TYPE_SINK}}, # PURE SINK! Modul za sebe, koji će se staviti na isti čvor na kojem su NR-ovi. On  će služiti kao sink za poruke koje su se zaprimile više puta, RAM i IPT za takav modul nisu bitni!
+            {"DC": {"RAM": 1000*self.P, "IPT": 10000*self.P, "Type":Application.TYPE_MODULE}}, # Nije ti TYPE_SINK!!!!!! jer sadrzi i druge servise na sebi, nije PURE SINK!!! Ako stavimo da je TYPE_SINK, svaka poruka koja ude u ovaj cvor ce zavristi u "smecu", tj sinku
         ])
 
         # DECOMP -> decompression, PROC -> DataProcessing
@@ -47,9 +48,9 @@ class Uc1_application(object):
                             bytes=self.__calcInstruction(60, 27))
 
         GW_NR_m = Message("GW_NR_m", "GW", "NR", instructions=self.__calcOktets(3),
-                          bytes=self.__calcInstruction(40, 16))
+                          bytes=self.__calcInstruction(40, 16)) # Filtracija
         NR_DECOMP_m = Message("NR_DECOMP_m", "NR", "NR", instructions=self.__calcOktets(6),
-                            bytes=self.__calcInstruction(60, 16))
+                            bytes=self.__calcInstruction(60, 16)) # Dekompresija -> poruka koja se "filtrira", izbacuje, ne salje dalje, ako je duplikat.
         DECOMP_PROC_m = Message("DECOMP_PROC_m", "DECOMP", "PROC", instructions=self.__calcOktets(12),
                               bytes=self.__calcInstruction(60, 27))
 
@@ -64,7 +65,8 @@ class Uc1_application(object):
         # sink module added later in placement
 
         """ POPULATION """
-        self.app.add_service_module("DC", PROC_DC_m)  # Ide na timeout za storing, i dalje je sink!
+        self.app.add_service_module("DC", PROC_DC_m)  # Ide na timeout za storing, i dalje je SINK!
+        #  self.app.add_service_module("NR_SINK", NR_DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
 
         distribution = DeterministicDistribution_mm_uc1(15, topology.my_as_graph.total_num_of_mm, name="deterministicMM")
         self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)

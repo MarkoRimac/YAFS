@@ -30,7 +30,7 @@ def main(data):
     app = Uc1_application("UseCase1", t)
 
     placement = Uc1_placement(name="UseCase1") #Inizializes when starting s
-    selectorPath = First_ShortestPath()
+    selectorPath = First_ShortestPath("NR_DECOMP_m")
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)

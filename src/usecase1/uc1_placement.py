@@ -21,10 +21,6 @@ class Uc1_placement(Placement):
         self.GW_nodes_ids = list()
         self.NR_nodes_ids = list()
 
-        # konstante
-        self.has_compression = True
-
-
     def initial_allocation(self, sim, app_name):
         app = sim.apps[app_name]
         topology = sim.topology
@@ -71,6 +67,7 @@ class Uc1_placement(Placement):
                     continue  # Trazi sljedeci highest degree node u toj regiji, jer je ovaj prvi vec zauzet!
                 taken_nodes.append(result[index][0])
                 sim.deploy_module(app.name, "NR", services["NR"], [result[index][0]])
+                sim.deploy_sink(app.name, result[index][0], "NR_SINK") #  Dodaj DES process za sink!
                 self.__link_module_attribute_with_topology_nodes("NR", [result[index][0]], topology, app)
                 break
 
