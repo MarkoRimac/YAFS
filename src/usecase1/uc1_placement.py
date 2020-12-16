@@ -48,8 +48,10 @@ class Uc1_placement(Placement):
         ## sim.deploy_source(app_name, MM_nodes_ids, message=add_source_messages("MM"),distribution) #
 
         DC_id = rand.choice(self.T_nodes_ids)  # Random DC cvor na T cvoru
-        self.__link_module_attribute_with_topology_nodes("DC",[DC_id], topology, app)
-        sim.deploy_module(app.name, "DC", services["DC"], [DC_id]) #  Definiranje SINKA preko DC servisa!
+        self.__link_module_attribute_with_topology_nodes("DC_PROC",[DC_id], topology, app)
+        self.__link_module_attribute_with_topology_nodes("DC_STORAGE",[DC_id], topology, app)
+        sim.deploy_module(app.name, "DC_PROC", services["DC_PROC"], [DC_id]) #  Definiranje SINKA preko DC servisa!
+        sim.deploy_module(app.name, "DC_STORAGE", services["DC_STORAGE"], [DC_id]) #  Definiranje SINKA preko DC servisa!
 
         """END OF POPULATION"""
 
