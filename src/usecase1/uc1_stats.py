@@ -3,12 +3,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
+import os
+import shutil
 
 class Uc1_stats(Stats):
+
+    def __init__(self, config_version, **kwargs):
+        super(Uc1_stats, self).__init__(**kwargs)
+        self.config_version = config_version
 
     def uc1_do_stats(self):
         self.__uc1_service_utilizations()
         self.__uc1_end_to_end_time()
+        self.__uc1_copy_config_file()
 
 
     def __uc1_service_utilizations(self):
@@ -54,7 +61,10 @@ class Uc1_stats(Stats):
         plt.plot(id_x_list, m * np.array(id_x_list, dtype=float) + b, color="red")
         plt.xlabel("Time in")
         plt.ylabel("Time spent in system")
-        plt.savefig("slike/end_to_end.png")
+
+        if not os.path.exists("slike/" + "config" + self.config_version):
+            os.makedirs("slike/" + "config" + self.config_version)
+        plt.savefig("slike/" + "config" + self.config_version + "/end_to_end.png")
 
         plt.clf()
 
@@ -81,6 +91,15 @@ class Uc1_stats(Stats):
         plt.bar(bar_x, bar_y, tick_label=bar_label)
         plt.xlabel(node_type + " DES ids")
         plt.ylabel("Utilization (%)")
-        plt.savefig("slike/" + node_type + "_utilization")
+
+        if not os.path.exists("slike/" + "config" + self.config_version):
+            os.makedirs("slike/" + "config" + self.config_version)
+        plt.savefig("slike/" + "config" + self.config_version + "/" + node_type + "_utilization.png")
 
         plt.clf()
+
+    def __uc1_copy_config_file(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        if not os.path.exists("slike/" + "config" + self.config_version):
+            os.makedirs("slike/" + "config" + self.config_version)
+        shutil.copy('config.json', "slike/" + "config" + self.config_version)

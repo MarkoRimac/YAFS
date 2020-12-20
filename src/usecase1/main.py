@@ -16,7 +16,6 @@ from uc1_stats import Uc1_stats
 def main(data):
 
     rand.seed(data.seed)  # has to be an object.
-    
     #TOPOLOGY creation
     t = Topology()
     AS_graph = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
@@ -35,7 +34,7 @@ def main(data):
     s.run(5000,show_progress_monitor=False)
 
     nx.write_gexf(t.G, data.outFILE + '.gexf')  # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
-    stats = Uc1_stats()
+    stats = Uc1_stats(str(data.config_version))
     stats.uc1_do_stats()
 
 
@@ -66,6 +65,7 @@ def get_and_check_args(data):
     parser.add_argument("nb_mm_variance", type=check_positive_and_zero, help="variance for normal distribution for number of measuring modules")
     parser.add_argument("t_connection_probability", type=check_positive_and_zero, help="probability of m connections to T nodes")
     parser.add_argument("seed", type=check_positive_and_zero, help="set seed for random values")
+    parser.add_argument("config_version", type=check_positive_and_zero, help="set version of config. It makes sures not to overwrite privious config output files in slike folder")
 
     x = list(data.values())
     arguments = parser.parse_args(x)
@@ -79,7 +79,7 @@ def get_and_check_args(data):
 parser = argparse.ArgumentParser()
 
 if __name__ == '__main__':
-    data = json.load(open('topostuff.json'))
+    data = json.load(open('config.json'))
     args = get_and_check_args(data)
     main(args)
 

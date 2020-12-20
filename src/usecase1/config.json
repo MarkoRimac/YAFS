@@ -1,5 +1,5 @@
 {
-  "outFILE": "outfile",
+  "outFILE": "uc1_graf",
   "nb_regions":  "5",
   "nb_core_nodes_per_region": "7",
   "nb_core_nodes_per_region_variance": "2",
@@ -9,5 +9,6 @@
   "nb_mm": "3",
   "nb_mm_variance": "1",
   "t_connection_probability": "25",
-  "seed": "2"
+  "seed": "2",
+  "config_version": "1"
 }
