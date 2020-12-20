@@ -24,7 +24,7 @@ def main(data):
 
     #Application
  
-    app = Uc1_application("UseCase1", t)
+    app = Uc1_application("UseCase1", t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, decompressionRatio=data.Cr)
 
     placement = Uc1_placement(name="UseCase1") #Inizializes when starting s
     selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
@@ -50,6 +50,12 @@ def check_positive_and_zero(value):
         raise argparse.ArgumentTypeError("Has to be positive!")
     return ival
 
+def check_positive_float(value):
+    ival = float(value)
+    if ival <= 0:
+        raise argparse.ArgumentTypeError("Has to be greater than 0!")
+    return ival
+
 def get_and_check_args(data):
     parser.add_argument("outFILE",
                         type=str,
@@ -65,6 +71,12 @@ def get_and_check_args(data):
     parser.add_argument("nb_mm_variance", type=check_positive_and_zero, help="variance for normal distribution for number of measuring modules")
     parser.add_argument("t_connection_probability", type=check_positive_and_zero, help="probability of m connections to T nodes")
     parser.add_argument("seed", type=check_positive_and_zero, help="set seed for random values")
+    parser.add_argument("N", type=check_positive_and_zero, help="number of instruction multiplier")
+    parser.add_argument("h", type=check_positive_and_zero, help="instruction header multiplier")
+    parser.add_argument("d", type=check_positive_and_zero, help="instruction data multiplier")
+    parser.add_argument("P", type=check_positive_and_zero, help="multiplier for processing power in all nodes and memory in NR and GW")
+    parser.add_argument("M", type=check_positive_and_zero, help="multiplier for memory in MM and GW")
+    parser.add_argument("Cr", type=check_positive_float, help="compression ratio")
     parser.add_argument("config_version", type=check_positive_and_zero, help="set version of config. It makes sures not to overwrite privious config output files in slike folder")
 
     x = list(data.values())

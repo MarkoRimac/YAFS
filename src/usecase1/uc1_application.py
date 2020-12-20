@@ -6,7 +6,7 @@ from uc1_distribution import DeterministicDistribution_mm_uc1
 
 class Uc1_application(object):
 
-    def __init__(self, app_name, topology, N=1, h=1, d=1, P=1, M=1, decompression=None, decompressionRatio=0.6):
+    def __init__(self, app_name, topology, N=1, h=1, d=1, P=1, M=1, decompressionRatio=0.6):
         self.app = Application(name=app_name)
 
         # TODO: sanity check of parameters.
@@ -17,7 +17,6 @@ class Uc1_application(object):
         self.P = P  # multiplier for processing power in all nodes and memory in NR and GW
         self.M = M  # multiplier for memory in MM and GW
 
-        self.decompression = decompression
         self.decompressionRatio = decompressionRatio
 
         self.msgs = tuple()
@@ -39,7 +38,7 @@ class Uc1_application(object):
         GW_NR_FILT_m = Message("GW_NR_FILT_m", "GW", "NR_FILT", instructions=self.__calcOktets(3),
                           bytes=self.__calcInstruction(40, 16)) # Filtracija
         NR_FILT_NR_DECOMP_m = Message("NR_FILT_NR_DECOMP_m", "NR_FILT", "NR_DECOMP", instructions=self.__calcOktets(6),
-                            bytes=self.__calcInstruction(60, 16)) # DEKOMPRESIJA time -> poruka koja se "filtrira" - izbacuje - ne salje dalje, ako je duplikat. u selectionu joj se mijenja "msg.dest" na sink ako je za filtraciju
+                            bytes=self.__calcInstruction(60, 16 * (1+self.decompressionRatio))) # DEKOMPRESIJA; poruka koja se "filtrira" - izbacuje - ne salje dalje, ako je duplikat. u selectionu joj se mijenja "msg.dest" na sink ako je za filtraciju
         NR_DECOMP_DC_PROC_m = Message("NR_DECOMP_DC_PROC_m", "NR_DECOMP", "DC_PROC", instructions=self.__calcOktets(12),
                             bytes=self.__calcInstruction(60, 27)) # PROCESSING time
         DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE", instructions=self.__calcOktets(8),
