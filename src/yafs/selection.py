@@ -104,12 +104,6 @@ class OneRandomPath(Selection):
 class First_ShortestPath(Selection):
     """Among all possible shorter paths, returns the first."""
 
-    def __init__(self, messageToBeFiltered):
-        self.messageToBeFiltered = messageToBeFiltered
-        self.forwardedMessages = list()
-        super(First_ShortestPath, self).__init__()
-
-
     def get_path(self, sim, app_name,message, topology_src, alloc_DES, alloc_module, traffic,from_des):
         paths = []
         dst_idDES = []
@@ -120,40 +114,15 @@ class First_ShortestPath(Selection):
         #Among all possible path we choose the smallest
         bestPath = []
         bestDES = []
-        #print (DES_dst)
+        print (DES_dst)
+        for des in DES_dst:
+            dst_node = alloc_DES[des]
+            # print "DES Node %i " %dst_node
 
-        if message.name == self.messageToBeFiltered:
-            if message.id in self.forwardedMessages:
-                message.dst = "NR_SINK" #  FORWARDAJ PORUKU NA SINK!
-                DES_dst = alloc_module[app_name]["NR_SINK"]
-                bestPath = [[node_src]]
-                for des in DES_dst: #  Nadi NR_SINK DES proces na src cvoru
-                    if alloc_DES[des] == node_src:
-                        bestDES = [des]
-                        break
-                return bestPath, bestDES
-            self.forwardedMessages.append(message.id)
+            path = list(nx.shortest_path(sim.topology.G, source=node_src, target=dst_node))
+            bestPath = [path]
+            bestDES  = [des]
+            print (path)
 
-
-        if message.dst == message.src: # Idi u sebe! Za poruke tipa NR->NR
-            bestPath = [[node_src]]
-            bestDES = [from_des]
-        elif message.dst == "GW":
-            for des in DES_dst:
-                dst_node = alloc_DES[des]
-                # print "DES Node %i " %dst_node
-                paths = list(nx.all_simple_paths(sim.topology.G, source=node_src, target=dst_node,cutoff=1))  # Distance izmedu MM i GW je samo 1!
-                for path in paths:
-                    bestPath.append(path) # TODO: Preimenuj ovaj bestPath.... Nije uvijek samo jedan! Ovdje je za broadcast od MM-a vise njih!!
-                    bestDES.append(des)
-        else:
-            for des in DES_dst:
-                dst_node = alloc_DES[des]
-                # print "DES Node %i " %dst_node
-
-                path = list(nx.shortest_path(sim.topology.G, source=node_src, target=dst_node))
-                bestPath = [path]
-                bestDES  = [des]
-                #print (path)
 
         return bestPath,bestDES
