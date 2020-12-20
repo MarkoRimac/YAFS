@@ -15,25 +15,27 @@ from uc1_stats import Uc1_stats
 
 def main(data):
 
-    rand.seed(data.seed)  # has to be an object.
-    #TOPOLOGY creation
-    t = Topology()
-    AS_graph = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
-    t.G = AS_graph.G
-    t.add_as_graph_link(AS_graph)
+    a = 0
+    if a == 1:
+        rand.seed(data.seed)  # has to be an object.
+        #TOPOLOGY creation
+        t = Topology()
+        AS_graph = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
+        t.G = AS_graph.G
+        t.add_as_graph_link(AS_graph)
 
-    #Application
- 
-    app = Uc1_application("UseCase1", t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, decompressionRatio=data.Cr)
+        #Application
 
-    placement = Uc1_placement(name="UseCase1") #Inizializes when starting s
-    selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
+        app = Uc1_application("UseCase1", t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, decompressionRatio=data.Cr)
 
-    s = Sim(t)
-    s.deploy_app(app.app, placement, selectorPath)
-    s.run(5000,show_progress_monitor=False)
+        placement = Uc1_placement(name="UseCase1") #Inizializes when starting s
+        selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
 
-    nx.write_gexf(t.G, data.outFILE + '.gexf')  # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
+        s = Sim(t)
+        s.deploy_app(app.app, placement, selectorPath)
+        s.run(5000,show_progress_monitor=False)
+
+        nx.write_gexf(t.G, data.outFILE + '.gexf')  # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
     stats = Uc1_stats(str(data.config_version))
     stats.uc1_do_stats()
 

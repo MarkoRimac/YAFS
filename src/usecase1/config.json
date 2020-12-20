@@ -9,12 +9,12 @@
   "nb_mm": "3",
   "nb_mm_variance": "1",
   "t_connection_probability": "25",
-  "seed": "3",
-  "N": "1",
+  "seed": "2",
+  "N": "50",
   "h": "1",
   "d": "1",
   "P": "1",
   "M": "1",
   "Cr": "0.6",
-  "config_version": "2"
+  "config_version": "1"
 }

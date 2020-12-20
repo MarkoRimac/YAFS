@@ -40,14 +40,16 @@ class Uc1_stats(Stats):
 
         id_x_list = list()
         time_y_list = list()
+        id_x_no_list = list() #  id poruka koje nisu uspjele doci do kraja.
         for id in x['id']:
 
+            time_in = x[x['id'] == id]['time_emit'].values[0]
             try:
-                time_in = x[x['id'] == id]['time_emit'].values[0]
                 result_time = x[x['id'] == id]['time_emit'].values[1] - time_in
                 id_x_list.append(time_in)
                 time_y_list.append(result_time)
             except IndexError:
+                id_x_no_list.append(time_in)
                 result_time = 'NaN'
 
         stats = linregress(id_x_list, time_y_list)
@@ -56,15 +58,14 @@ class Uc1_stats(Stats):
         b = stats.intercept
 
         plt.clf()
-
         plt.scatter(id_x_list, time_y_list)
         plt.plot(id_x_list, m * np.array(id_x_list, dtype=float) + b, color="red")
+        plt.scatter(id_x_no_list, len(id_x_no_list)*[0], color="red", marker="x")
         plt.xlabel("Time in")
         plt.ylabel("Time spent in system")
-
         if not os.path.exists("slike/" + "config" + self.config_version):
             os.makedirs("slike/" + "config" + self.config_version)
-        plt.savefig("slike/" + "config" + self.config_version + "/end_to_end.png")
+        plt.savefig("slike/" + "config" + self.config_version + "/end_to_end.png", dpi=300)
 
         plt.clf()
 
@@ -94,12 +95,11 @@ class Uc1_stats(Stats):
 
         if not os.path.exists("slike/" + "config" + self.config_version):
             os.makedirs("slike/" + "config" + self.config_version)
-        plt.savefig("slike/" + "config" + self.config_version + "/" + node_type + "_utilization.png")
+        plt.savefig("slike/" + "config" + self.config_version + "/" + node_type + "_utilization.png", dpi=300)
 
         plt.clf()
 
     def __uc1_copy_config_file(self):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
         if not os.path.exists("slike/" + "config" + self.config_version):
             os.makedirs("slike/" + "config" + self.config_version)
         shutil.copy('config.json', "slike/" + "config" + self.config_version)
