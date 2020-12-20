@@ -43,20 +43,32 @@ class Uc1_placement(Placement):
 
         """ POPULATION! + PLACEMENT"""
 
-        sim.deploy_module(app.name, "MM", services["MM"], self.MM_nodes_ids)    # Definiranje sourca preko servisa, a ne preko "pure source". Zašto? Bezveze, moglo se i s ovim dolje, posto je taj modul samo i samo source!
+        id_DES = sim.deploy_module(app.name, "MM", services["MM"], self.MM_nodes_ids)    # Definiranje sourca preko servisa, a ne preko "pure source". Zašto? Bezveze, moglo se i s ovim dolje, posto je taj modul samo i samo source!
         ## distribution = DeterministicDistribution_mm_uc1  # Ovo je drugi nacin na koji se moze deplioyati soruce kao "pure source" modul.
         ## sim.deploy_source(app_name, MM_nodes_ids, message=add_source_messages("MM"),distribution) #
+        index = 0
+        for node in self.MM_nodes_ids:
+            topology.G.add_node(node, id_DES=id_DES[index])
+            index = index + 1
 
         DC_id = rand.choice(self.T_nodes_ids)  # Random DC cvor na T cvoru
         self.__link_module_attribute_with_topology_nodes("DC_PROC",[DC_id], topology, app)
         self.__link_module_attribute_with_topology_nodes("DC_STORAGE",[DC_id], topology, app)
-        sim.deploy_module(app.name, "DC_PROC", services["DC_PROC"], [DC_id]) #  Definiranje SINKA preko DC servisa!
-        sim.deploy_module(app.name, "DC_STORAGE", services["DC_STORAGE"], [DC_id]) #  Definiranje SINKA preko DC servisa!
+        id_DES1 = sim.deploy_module(app.name, "DC_PROC", services["DC_PROC"], [DC_id]) #  Definiranje SINKA preko DC servisa!
+        id_DES2 = sim.deploy_module(app.name, "DC_STORAGE", services["DC_STORAGE"], [DC_id]) #  Definiranje SINKA preko DC servisa!
+        topology.G.add_node(DC_id, id_DES=str(id_DES1[0]) + ',' + str(id_DES2[0])) # Dva DES procesa na cvoru.
 
         """END OF POPULATION"""
 
         """ PLACEMENT """
-        sim.deploy_module(app.name, "GW", services["GW"], self.GW_nodes_ids)
+        id_DES = sim.deploy_module(app.name, "GW", services["GW"], self.GW_nodes_ids)
+
+        #  DODAJ id_DES attribut.
+        index = 0
+        for node in self.GW_nodes_ids:
+            topology.G.add_node(node, id_DES=id_DES[index])
+            index = index + 1
+
         # Node with biggest degree in a region
         taken_nodes = list()    # Buduci da cvor moze biti u vise regija, ajmo za sada uzeti da je NR-ova onoliko koliko je i regija.
         for region in topology.my_as_graph.regions.keys():
@@ -68,9 +80,10 @@ class Uc1_placement(Placement):
                 if result[index][0] in taken_nodes:
                     continue  # Trazi sljedeci highest degree node u toj regiji, jer je ovaj prvi vec zauzet!
                 taken_nodes.append(result[index][0])
-                sim.deploy_module(app.name, "NR_FILT", services["NR_FILT"], [result[index][0]])
-                sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [result[index][0]])
-                sim.deploy_sink(app.name, result[index][0], "NR_SINK") #  Dodaj DES process za sink!
+                id_DES1 = sim.deploy_module(app.name, "NR_FILT", services["NR_FILT"], [result[index][0]])
+                id_DES2 = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [result[index][0]])
+                topology.G.add_node(result[index][0], type="NR", id_DES=str(id_DES1[0]) + ',' + str(id_DES2[0]))  # Dva DES procesa na cvoru.
+                sim.deploy_sink(app.name, result[index][0], "NR_SINK") #  Dodaj sink! On nema DES PROCES!
                 self.__link_module_attribute_with_topology_nodes("NR_FILT", [result[index][0]], topology, app)
                 self.__link_module_attribute_with_topology_nodes("NR_DECOMP", [result[index][0]], topology, app)
                 break

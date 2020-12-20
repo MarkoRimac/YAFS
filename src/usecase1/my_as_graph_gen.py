@@ -125,11 +125,11 @@ class MY_as_graph_gen:
         # in MBits/s
         self.LoRaWAN_databit_translation = {0: (0.000250, 12), 1: (0.000440, 11), 2: (0.000980, 10), 3: (0.001760, 9),
                                        4: (0.003125, 8), 5: (0.005470, 7), 6: (0.011000, 7)}
-        self.IP_PT = 2  # in s
+        self.IP_PT = 0.02  # in s
         self.IP_BW = 100  # in MBits/s
 
         self.LoRaDatarate = 5 # odavde se izvlaci BW
-        self.LoRaPR = 1 # in s
+        self.LoRaPR = 0.1 # in s
 
     def t_graph(self):
         """ Generates the core mesh network of tier one nodes of a AS graph.
