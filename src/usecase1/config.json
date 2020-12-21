@@ -16,5 +16,6 @@
   "P": "1",
   "M": "1",
   "Cr": "0.6",
-  "config_version": "1"
+  "app_version": "FILT_DECOMP",
+  "config_version": "2"
 }

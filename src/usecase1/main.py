@@ -20,17 +20,23 @@ def main(data):
     t.add_as_graph_link(AS_graph)
 
     #Application
-    app = Uc1_application("UseCase1", t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, decompressionRatio=data.Cr)
+    app = Uc1_application("UseCase1", data.app_version, t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, decompressionRatio=data.Cr)
 
-    placement = Uc1_placement(name="UseCase1") #Inizializes when starting s
-    selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
+    placement = Uc1_placement(name="UseCase1")  # Inizializes when starting s
+
+    if data.app_version == "DECOMP_FILT":
+        selectorPath = Uc1_First_ShortestPath("NR_FILT_DC_PROC_m") # Message which is to be filtered
+    elif data.app_version == "FILT_DECOMP":
+        selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
+    else:
+        selectorPath = Uc1_First_ShortestPath("doesnt_matter")
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
     s.run(5000,show_progress_monitor=False)
-    stats = Uc1_stats(str(data.config_version))
+    stats = Uc1_stats(str(data.config_version), data.app_version)
     stats.uc1_do_stats()
-    stats.uc1_stats_save_gexf(t, data.outFILE)
+    stats.uc1_stats_save_gexf(t, data.outFILE) # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
 
 
 def check_bigger_than_zero(value):
@@ -50,6 +56,12 @@ def check_positive_float(value):
     if ival <= 0:
         raise argparse.ArgumentTypeError("Has to be greater than 0!")
     return ival
+
+def check_app_version(value):
+    if value in ["DECOMP_FILT", "FILT_DECOMP", "NONE"]:
+        return value
+    else:
+        raise argparse.ArgumentTypeError("PICK BETWEEN DECOMP_FILT or FILT_DECOMP")
 
 def get_and_check_args(data):
     parser.add_argument("outFILE",
@@ -72,6 +84,7 @@ def get_and_check_args(data):
     parser.add_argument("P", type=check_positive_and_zero, help="multiplier for processing power in all nodes and memory in NR and GW")
     parser.add_argument("M", type=check_positive_and_zero, help="multiplier for memory in MM and GW")
     parser.add_argument("Cr", type=check_positive_float, help="compression ratio")
+    parser.add_argument("app_version", type=check_app_version, help="DECOMP_FILT, FILT_DECOMP or NONE types of applications. DECOMP_FILT means that message is decompressed first then filtered, and so on..")
     parser.add_argument("config_version", type=str, help="set version of config. It makes sures not to overwrite privious config output files in slike folder")
 
     x = list(data.values())

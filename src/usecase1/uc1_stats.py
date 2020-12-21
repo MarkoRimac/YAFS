@@ -9,9 +9,10 @@ import shutil
 
 class Uc1_stats(Stats):
 
-    def __init__(self, config_version, **kwargs):
+    def __init__(self, config_version, app_version, **kwargs):
         super(Uc1_stats, self).__init__(**kwargs)
         self.config_version = config_version
+        self.app_version = app_version
 
     def uc1_do_stats(self):
         self.__uc1_service_utilizations()
@@ -19,9 +20,9 @@ class Uc1_stats(Stats):
         self.__uc1_copy_config_file()
 
     def uc1_stats_save_gexf(self, topology, name):
-        if not os.path.exists("output/" + "config" + self.config_version):
-            os.makedirs("output/" + "config" + self.config_version)
-        nx.write_gexf(topology.G, "output/" + "config" + self.config_version + '/' + name + '.gexf')  # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
+        if not os.path.exists("output/" + "config" + self.config_version + "_" + self.app_version):
+            os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
+        nx.write_gexf(topology.G, "output/" + "config" + self.config_version + "_" + self.app_version + '/' + name + '.gexf')
 
     def __uc1_service_utilizations(self):
 
@@ -68,9 +69,9 @@ class Uc1_stats(Stats):
         plt.scatter(id_x_no_list, len(id_x_no_list)*[0], color="red", marker="x")
         plt.xlabel("Time in")
         plt.ylabel("Time spent in system")
-        if not os.path.exists("output/" + "config" + self.config_version):
-            os.makedirs("output/" + "config" + self.config_version)
-        plt.savefig("output/" + "config" + self.config_version + "/end_to_end.png", dpi=300)
+        if not os.path.exists("output/" + "config" + self.config_version + "_" + self.app_version):
+            os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
+        plt.savefig("output/" + "config" + self.config_version + "_" + self.app_version + "/end_to_end.png", dpi=300)
 
         plt.clf()
 
@@ -94,17 +95,18 @@ class Uc1_stats(Stats):
         bar_x = values["DES_id"].to_numpy().tolist()
         bar_y = values["utilization"].to_numpy().tolist()
         bar_label = [str(i) for i in values["DES_id"].to_numpy().tolist()]
+        plt.ylim([0, 100])
         plt.bar(bar_x, bar_y, tick_label=bar_label)
         plt.xlabel(node_type + " DES ids")
         plt.ylabel("Utilization (%)")
 
-        if not os.path.exists("output/" + "config" + self.config_version):
-            os.makedirs("output/" + "config" + self.config_version)
-        plt.savefig("output/" + "config" + self.config_version + "/" + node_type + "_utilization.png", dpi=300)
+        if not os.path.exists("output/" + "config" + self.config_version+ "_" + self.app_version):
+            os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
+        plt.savefig("output/" + "config" + self.config_version + "_" + self.app_version + "/" + node_type + "_utilization.png", dpi=300)
 
         plt.clf()
 
     def __uc1_copy_config_file(self):
-        if not os.path.exists("output/" + "config" + self.config_version):
-            os.makedirs("output/" + "config" + self.config_version)
-        shutil.copy('config.json', "output/" + "config" + self.config_version)
+        if not os.path.exists("output/" + "config" + self.config_version + "_" + self.app_version):
+            os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
+        shutil.copy('config.json', "output/" + "config" + self.config_version + "_" + self.app_version)
