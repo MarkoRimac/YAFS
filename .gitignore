@@ -2,5 +2,6 @@
 .idea/*
 *.gexf
 src/usecase1/slike
+src/usecase1/output
 src/usecase1/*.csv
 YAFS_documentation.txt
