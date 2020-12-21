@@ -72,7 +72,7 @@ def get_and_check_args(data):
     parser.add_argument("P", type=check_positive_and_zero, help="multiplier for processing power in all nodes and memory in NR and GW")
     parser.add_argument("M", type=check_positive_and_zero, help="multiplier for memory in MM and GW")
     parser.add_argument("Cr", type=check_positive_float, help="compression ratio")
-    parser.add_argument("config_version", type=check_positive_and_zero, help="set version of config. It makes sures not to overwrite privious config output files in slike folder")
+    parser.add_argument("config_version", type=str, help="set version of config. It makes sures not to overwrite privious config output files in slike folder")
 
     x = list(data.values())
     arguments = parser.parse_args(x)
