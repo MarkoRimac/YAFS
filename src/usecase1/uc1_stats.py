@@ -2,6 +2,7 @@ from yafs.stats import Stats
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import networkx as nx
 from scipy.stats import linregress
 import os
 import shutil
@@ -17,6 +18,10 @@ class Uc1_stats(Stats):
         self.__uc1_end_to_end_time()
         self.__uc1_copy_config_file()
 
+    def uc1_stats_save_gexf(self, topology, name):
+        if not os.path.exists("slike/" + "config" + self.config_version):
+            os.makedirs("slike/" + "config" + self.config_version)
+        nx.write_gexf(topology.G, "slike/" + "config" + self.config_version + '/' + name + '.gexf')  # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
 
     def __uc1_service_utilizations(self):
 
