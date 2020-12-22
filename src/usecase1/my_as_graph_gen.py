@@ -75,7 +75,7 @@ class MY_as_graph_gen:
     """
 
     def __init__(self, nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
-                nb_mm, nb_mm_variance, t_connection_probability, seed):
+                nb_mm, nb_mm_variance, t_connection_probability, lorawan_datarate, seed):
         """ Initializes variables. Immediate numbers are taken from [1].
 
         Parameters
@@ -128,8 +128,8 @@ class MY_as_graph_gen:
         self.IP_PT = 0.02  # in s
         self.IP_BW = 100  # in MBits/s
 
-        self.LoRaDatarate = 5 # odavde se izvlaci BW
-        self.LoRaPR = 0.1 # in s
+        self.LoRaDatarate = lorawan_datarate # odavde se izvlaci BW
+        self.LoRaPR = 0.01 # in s
 
     def t_graph(self):
         """ Generates the core mesh network of tier one nodes of a AS graph.
@@ -329,7 +329,7 @@ class MY_as_graph_gen:
         return self.G
 
 def my_random_internet_as_graph(nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
-                nb_mm, nb_mm_variance, t_connection_probability, seed=None):
+                nb_mm, nb_mm_variance, t_connection_probability, lorawan_datarate, seed=None):
     """ Generates a random undirected graph resembling the Internet AS network
 
     Parameters
@@ -367,6 +367,6 @@ def my_random_internet_as_graph(nb_regions, nb_core_nodes_per_region, nb_core_no
     """
 
     GG = MY_as_graph_gen(nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
-                nb_mm, nb_mm_variance, t_connection_probability, seed)
+                nb_mm, nb_mm_variance, t_connection_probability, lorawan_datarate, seed)
     GG.generate()
     return GG

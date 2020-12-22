@@ -15,7 +15,7 @@ def main(data):
     rand.seed(data.seed)  # has to be an object.
     #TOPOLOGY creation
     t = Topology()
-    AS_graph = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.seed)
+    AS_graph = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.lorawan_datarate, data.seed)
     t.G = AS_graph.G
     t.add_as_graph_link(AS_graph)
 
@@ -63,6 +63,12 @@ def check_app_version(value):
     else:
         raise argparse.ArgumentTypeError("PICK BETWEEN DECOMP_FILT or FILT_DECOMP")
 
+def check_lorawan_datarate(value):
+    ival = int(value)
+    if ival < 0 or ival > 6:
+        raise argparse.ArgumentTypeError("Has to be 0, 1,2,3,4,5,or6!")
+    return ival
+
 def get_and_check_args(data):
     parser.add_argument("outFILE",
                         type=str,
@@ -77,6 +83,7 @@ def get_and_check_args(data):
     parser.add_argument("nb_mm", type=check_positive_and_zero, help="Number of measuring modules")
     parser.add_argument("nb_mm_variance", type=check_positive_and_zero, help="variance for normal distribution for number of measuring modules")
     parser.add_argument("t_connection_probability", type=check_positive_and_zero, help="probability of m connections to T nodes")
+    parser.add_argument("lorawan_datarate", type=check_lorawan_datarate, help="check table for lorwan")
     parser.add_argument("seed", type=check_positive_and_zero, help="set seed for random values")
     parser.add_argument("N", type=check_positive_and_zero, help="number of instruction multiplier")
     parser.add_argument("h", type=check_positive_and_zero, help="instruction header multiplier")

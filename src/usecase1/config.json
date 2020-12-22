@@ -9,6 +9,7 @@
   "nb_mm": "3",
   "nb_mm_variance": "1",
   "t_connection_probability": "25",
+  "lorawan_datarate" : "5",
   "seed": "2",
   "N": "200",
   "h": "1",
@@ -16,6 +17,6 @@
   "P": "1",
   "M": "1",
   "Cr": "0.6",
-  "app_version": "NONE",
-  "config_version": "2"
+  "app_version": "FILT_DECOMP",
+  "config_version": "1_N200"
 }
