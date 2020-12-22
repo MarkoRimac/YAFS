@@ -21,9 +21,9 @@ class Uc1_application(object):
 
         # KONSTANTE
         self.SOURCE_GENERATION_PERIOD_s = 15 # Period od 15s za generiranje poruka u MM
-        self.mm_original_data_size = 16
-        self.compressed_data = self.mm_original_data_size * self.compressionRatio
-        self.decompressed_data = self.compressed_data * (1+self.compressionRatio)
+        self.decompressed_data = 27
+        self.compressed_data = self.decompressed_data * self.compressionRatio
+
 
         #HELPERS
         self.msgs = tuple()
@@ -145,7 +145,7 @@ class Uc1_application(object):
             {"GW": {"RAM": 100 * self.M, "IPT": 20 * self.P, "Type": Application.TYPE_MODULE}},
             {"NR_FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
             # TODO Filtracija i Dekompresija ce biti zasebni procesi na istom cvoru. Kako napraviti shareanje resursa IPT-a? Za sada sam stavio da svaki ima svoj IPT koji koristi, ISTO I DOLJE RADIM SA dva procesa na DC!
-            {"NR_DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
+            {"NR_DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}}, # Not really used here.
             {"NR_SINK": {"Type": Application.TYPE_SINK}},
             # PURE SINK! Modul za sebe, koji će se staviti na isti čvor na kojem su NR-ovi. On  će služiti kao sink za poruke koje su se zaprimile više puta, RAM i IPT za takav modul nisu bitni!
             {"DC_PROC": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
@@ -155,21 +155,22 @@ class Uc1_application(object):
 
         # DECOMP -> decompression, PROC -> DataProcessing
         MM_GW_m = Message("MM_GW_m", "MM", "GW", instructions=self.__calcOktets(1),
-                          bytes=self.__calcInstruction(20, 16 * self.compressionRatio)) # Kompresija na MMu
+                          bytes=self.__calcInstruction(20, self.decompressed_data)) # Kompresija na MMu
         GW_NR_FILT_m = Message("GW_NR_FILT_m", "GW", "NR_FILT", instructions=self.__calcOktets(3),
-                               bytes=self.__calcInstruction(40, 16))  # Filtracija
-
-        NR_DECOMP_DC_PROC_m = Message("NR_DECOMP_DC_PROC_m", "NR_DECOMP", "DC_PROC", instructions=self.__calcOktets(12),
-                                      bytes=self.__calcInstruction(60, 16 * (1 + self.compressionRatio)))  # PROCESSING time
-        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE", instructions=self.__calcOktets(8),
-                                       bytes=self.__calcInstruction(60, 16 * (1 + self.compressionRatio)))  # STORAGE time
+                               bytes=self.__calcInstruction(40, self.decompressed_data))  # Filtracija
+        NR_FILT_DC_PROC_m = Message("NR_FILT_DC_PROC_m", "NR_FILT", "DC_PROC", instructions=self.__calcOktets(12),
+                                      bytes=self.__calcInstruction(60, self.decompressed_data))  # PROCESSING time
+        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE", instructions=self.__calcOktets(8), # STORAGE time
+                                       bytes=self.__calcInstruction(60, self.decompressed_data))
+        DUMMY_MESSAGE_m = Message("DUMMY_MESSAGE_m", "sada", "sads") # ovo je ovde samo da se sprijece if-ovi za app_version u uc1_placementu. NR_DECOMP kao "postoji" ali ustvari ga skros zaobilazimo.
 
         # Filtracija pa Dekompozicija
         # source is added above in modules.
         self.app.add_service_module("GW", MM_GW_m, GW_NR_FILT_m)
-        self.app.add_service_module("NR_FILT", GW_NR_FILT_m, NR_FILT_NR_DECOMP_m)
-        self.app.add_service_module("NR_DECOMP", NR_FILT_NR_DECOMP_m, NR_DECOMP_DC_PROC_m)
-        self.app.add_service_module("DC_PROC", NR_DECOMP_DC_PROC_m, DC_PROC_DC_STORAGE_m)
+        self.app.add_service_module("NR_FILT", GW_NR_FILT_m, NR_FILT_DC_PROC_m)
+        self.app.add_service_module("DC_PROC", NR_FILT_DC_PROC_m, DC_PROC_DC_STORAGE_m)
+        self.app.add_service_module("NR_DECOMP", DUMMY_MESSAGE_m, DUMMY_MESSAGE_m) # ovo je ovde samo da se sprijece if-ovi za app_version u uc1_placementu. NR_DECOMP kao "postoji" ali ustvari ga skros zaobilazimo.
+
 
         """ POPULATION """
         self.app.add_service_module("DC_STORAGE",

@@ -29,7 +29,7 @@ def main(data):
     elif data.app_version == "FILT_DECOMP":
         selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
     else:
-        selectorPath = Uc1_First_ShortestPath("doesnt_matter")
+        selectorPath = Uc1_First_ShortestPath("NR_FILT_DC_PROC_m")
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
