@@ -37,8 +37,10 @@ class Uc1_placement(Placement):
                 self.__link_module_attribute_with_topology_nodes("GW", self.GW_nodes_ids, topology, app)
             elif type == "T":
                 self.T_nodes_ids.append(id)
+                self.__link_module_attribute_with_topology_nodes("NR", self.GW_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao NR
             elif type == "M":
                 self.M_nodes_ids.append(id)
+                self.__link_module_attribute_with_topology_nodes("NR", self.GW_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao NR
                 #  attributi ce biti dodani kasnije na placementu za NR cvor.
 
         """ POPULATION! + PLACEMENT"""
