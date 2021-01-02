@@ -13,8 +13,10 @@ import random as rand
 
 class Uc1_placement(Placement):
 
-    def __init__(self, **kwargs):
+    def __init__(self, nr_filt_placement_method, nb_nr_filt_per_region, **kwargs):
         super(Uc1_placement,self).__init__(**kwargs)
+        self.nr_filt_placement_method = nr_filt_placement_method
+        self.nb_nr_filt_per_region = nb_nr_filt_per_region
         self.T_nodes_ids = list()
         self.M_nodes_ids = list()
         self.MM_nodes_ids = list()
@@ -71,24 +73,10 @@ class Uc1_placement(Placement):
             topology.G.add_node(node, id_DES=id_DES[index])
             index = index + 1
 
-        # Node with biggest degree in a region
-        taken_nodes = list()    # Buduci da cvor moze biti u vise regija, ajmo za sada uzeti da je NR-ova onoliko koliko je i regija.
-        for region in topology.my_as_graph.regions.keys():
-
-            nodes = topology.my_as_graph.regions[region].intersection(self.M_nodes_ids)
-            result = sorted(topology.G.degree(nodes), key=lambda x: x[1], reverse=True)
-
-            for index in range(len(result)):
-                if result[index][0] in taken_nodes:
-                    continue  # Trazi sljedeci highest degree node u toj regiji, jer je ovaj prvi vec zauzet!
-                taken_nodes.append(result[index][0])
-                id_DES1 = sim.deploy_module(app.name, "NR_FILT", services["NR_FILT"], [result[index][0]])
-                id_DES2 = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [result[index][0]])
-                topology.G.add_node(result[index][0], regions=region, type="NR", id_DES=str(id_DES1[0]) + ',' + str(id_DES2[0]))  # Dva DES procesa na cvoru.
-                sim.deploy_sink(app.name, result[index][0], "NR_SINK") #  Dodaj sink! On nema DES PROCES!
-                self.__link_module_attribute_with_topology_nodes("NR_FILT", [result[index][0]], topology, app)
-                self.__link_module_attribute_with_topology_nodes("NR_DECOMP", [result[index][0]], topology, app)
-                break
+        if self.nr_filt_placement_method == "HIGHEST_DEGREE":
+            self.__highest_degree_nr_filt_placement(sim, topology, services, app)
+        else:
+            self.__bc_nr_filt_placement(sim, topology, services, app)
 
     def __link_module_attribute_with_topology_nodes(self, module, node_ids,topology, app):
         data = app.data
@@ -98,3 +86,44 @@ class Uc1_placement(Placement):
                     if m == module:
                         topology.G.add_node(node_id, IPT=x[m]['IPT'], RAM=x[m]['RAM'])
 
+
+    def __highest_degree_nr_filt_placement(self, sim, topology, services, app):
+        taken_nodes = list()
+        for region in topology.my_as_graph.regions.keys():
+
+            nodes = topology.my_as_graph.regions[region].intersection(self.M_nodes_ids).difference(taken_nodes)
+            result = topology.G.degree(nodes)
+            result = sorted(result , key=lambda x: x[1], reverse=True)
+
+            for _ in range(self.nb_nr_filt_per_region):
+                taken_nodes.append(result[0][0])
+                id_DES1 = sim.deploy_module(app.name, "NR_FILT", services["NR_FILT"], [result[0][0]])
+                id_DES2 = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [result[0][0]])
+                topology.G.add_node(result[0][0], regions=region, type="NR", id_DES=str(id_DES1[0]) + ',' + str(id_DES2[0]))  # Dva DES procesa na cvoru.
+                sim.deploy_sink(app.name, result[0][0], "NR_SINK") #  Dodaj sink! On nema DES PROCES!
+                self.__link_module_attribute_with_topology_nodes("NR_FILT", [result[0][0]], topology, app)
+                self.__link_module_attribute_with_topology_nodes("NR_DECOMP", [result[0][0]], topology, app)
+                result.remove(result[0])
+
+    def __bc_nr_filt_placement(self, sim, topology, services, app):
+        taken_nodes = list()
+        for region in sim.topology.my_as_graph.regions:
+
+            # BC izmedu svih GW cvorova u toj regiji!
+            nodes_src = sim.topology.my_as_graph.nodes["GW"].intersection(sim.topology.my_as_graph.regions[region]).difference(taken_nodes)
+            result = nx.betweenness_centrality_subset(sim.topology.G, nodes_src, nodes_src)
+            result = list(result.items())
+            result = sorted(result, key=lambda x: float(x[1]), reverse=True)
+
+            for _ in range(self.nb_nr_filt_per_region):
+                while topology.G.nodes[result[0][0]]['type'] != "M":
+                    result.remove(result[0]) # Trazi slobodni M CVOR!
+
+                taken_nodes.append(result[0][0])
+                id_DES1 = sim.deploy_module(app.name, "NR_FILT", services["NR_FILT"], [result[0][0]])
+                id_DES2 = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [result[0][0]])
+                topology.G.add_node(result[0][0], regions=region, type="NR", id_DES=str(id_DES1[0]) + ',' + str(id_DES2[0]))  # Dva DES procesa na cvoru.
+                sim.deploy_sink(app.name, result[0][0], "NR_SINK") #  Dodaj sink! On nema DES PROCES!
+                self.__link_module_attribute_with_topology_nodes("NR_FILT", [result[0][0]], topology, app)
+                self.__link_module_attribute_with_topology_nodes("NR_DECOMP", [result[0][0]], topology, app)
+                result.remove(result[0])

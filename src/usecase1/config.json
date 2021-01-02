@@ -1,16 +1,17 @@
 {
   "outFILE": "uc1_graf",
   "nb_regions":  "5",
-  "nb_core_nodes_per_region": "7",
+  "nb_core_nodes_per_region": "10",
   "nb_core_nodes_per_region_variance": "2",
-  "nb_gw_per_region":  "2",
+  "nb_gw_per_region":  "5",
   "nb_gw_per_region_variance": "1",
-  "avg_deg_core_node":  "4",
+  "nb_nr_filt_per_region": "1",
+  "avg_deg_core_node":  "5",
   "nb_mm": "3",
   "nb_mm_variance": "1",
-  "t_connection_probability": "25",
+  "t_connection_probability": "0",
   "lorawan_datarate" : "5",
-  "seed": "2",
+  "seed": "5",
   "N": "200",
   "h": "1",
   "d": "1",
@@ -18,5 +19,6 @@
   "M": "1",
   "Cr": "0.6",
   "app_version": "FILT_DECOMP",
-  "config_version": "1_N200"
+  "nr_filt_placement_method": "HIGHEST_DEGREE",
+  "config_version": "1_N2003"
 }
