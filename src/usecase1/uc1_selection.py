@@ -47,6 +47,23 @@ class Uc1_First_ShortestPath(Selection):
                 for path in paths:
                     bestPaths.append(path) #  Vise pathova ce se poslati MM-u. To ce uzrokovat da dode do broadcastinga MM poruka na vise GW cvorova!
                     bestDESs.append(des)
+        elif message.dst == "NR_FILT":
+            best_des = dict()  # Saves DES for corresponding path.
+            for des in DES_dst:
+                dst_node = alloc_DES[des]
+                # print "DES Node %i " %dst_node
+                path = list(nx.shortest_path(sim.topology.G, source=node_src, target=dst_node))
+                if sim.topology.G.nodes[topology_src]['regions'] != sim.topology.G.nodes[path[-1]]['regions']:  # Ako taj DES_dst od NR-a nije namjenjen za tu regiju, NE DAJ PUTEVE za to! Pretpostavljda da imamo zasebne NR-ove za svaku regiju!
+                    continue
+                bestPaths.append(path)
+                bestDESs.append(des)
+                best_des[str(path)] = des
+
+            # Dohvati najkraci.
+            min(bestPaths, key=len)
+            path = random.choice(bestPaths)  # Nekada su duljine puteva do NR cvorova iste za vise NR cvorova. Odaberi randomly koji ces. Ovdje je mogce upotrijebiti neku jos dodatnu metriku za odabir sljedeceg NR cvora ako ih je vise unutar jedne regije!
+            bestPaths = [path]
+            bestDESs = [best_des[str(path)]]
         else:
             best_des = dict()  # Saves DES for corresponding path.
             for des in DES_dst:
