@@ -72,7 +72,7 @@ class Uc1_placement(Placement):
             for index in self.GW_nodes_ids:
                 self.NR_DECOM_nodes_ids.append(index)
                 id_DES = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [index])
-                updated_id_DES = topology.G.nodes[index]['id_DES'] + ', ' + str(id_DES[0])
+                updated_id_DES = topology.G.nodes[index]['id_DES'] + ' ' + str(id_DES[0])
                 if self.app_version == "DECOMP_NR_A":
                     topology.G.add_node(index, type="GW_DECOMP", id_DES=updated_id_DES)
                 else:
@@ -94,7 +94,7 @@ class Uc1_placement(Placement):
         id_DES = sim.deploy_module(app.name, "GW", services["GW"], self.GW_nodes_ids)
         index = 0
         for node in self.GW_nodes_ids:
-            topology.G.add_node(node, id_DES=id_DES[index])
+            topology.G.add_node(node, id_DES=str(id_DES[index]))
             index = index + 1
 
     def __MM_placement(self, sim, topology, services, app):

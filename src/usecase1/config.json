@@ -6,7 +6,7 @@
   "nb_gw_per_region":  "5",
   "nb_gw_per_region_variance": "1",
   "nb_nr_filt_per_region": "1",
-  "avg_deg_core_node":  "5",
+  "avg_deg_core_node":  "6",
   "nb_mm": "3",
   "nb_mm_variance": "1",
   "t_connection_probability": "0",
@@ -18,7 +18,7 @@
   "P": "1",
   "M": "1",
   "Cr": "0.6",
-  "app_version": "NONE",
+  "app_version": "DECOMP_GW",
   "nr_filt_placement_method": "BC",
   "config_version": "TESTING"
 }
