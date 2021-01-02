@@ -108,8 +108,9 @@ class MY_as_graph_gen:
         self.nb_gw_per_region = nb_gw_per_region
         self.nb_gw_per_region_variance = nb_gw_per_region_variance
 
-        # TODO: Check da broj regija uvijek bude manji ili jednak broju cvorova u core mrezi - Sanity checks..
         self.n_t = int(rand.randint(1, self.nb_regions))  # num of T nodes
+        if self.n_t == 1: # Kada su DC_STORAGE i DC_PROC na razlicitim T cvorovima, onda mora biti minimalno 2 T cvora
+            self.n_t = 2
         self.nb_core_nodes_per_region = nb_core_nodes_per_region
         self.nb_core_nodes_per_region_variance = nb_core_nodes_per_region_variance
         self.avg_deg_core_node = avg_deg_core_node
