@@ -84,7 +84,7 @@ class Uc1_placement(Placement):
                 taken_nodes.append(result[index][0])
                 id_DES1 = sim.deploy_module(app.name, "NR_FILT", services["NR_FILT"], [result[index][0]])
                 id_DES2 = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [result[index][0]])
-                topology.G.add_node(result[index][0], type="NR", id_DES=str(id_DES1[0]) + ',' + str(id_DES2[0]))  # Dva DES procesa na cvoru.
+                topology.G.add_node(result[index][0], regions=region, type="NR", id_DES=str(id_DES1[0]) + ',' + str(id_DES2[0]))  # Dva DES procesa na cvoru.
                 sim.deploy_sink(app.name, result[index][0], "NR_SINK") #  Dodaj sink! On nema DES PROCES!
                 self.__link_module_attribute_with_topology_nodes("NR_FILT", [result[index][0]], topology, app)
                 self.__link_module_attribute_with_topology_nodes("NR_DECOMP", [result[index][0]], topology, app)
