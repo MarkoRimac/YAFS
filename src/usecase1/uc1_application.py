@@ -28,9 +28,9 @@ class Uc1_application(object):
         #HELPERS
         self.msgs = tuple()
 
-        if app_version == "DECOMP_FILT":
+        if app_version == "DECOMP_NR_B":
             self.__do_DECOMP_FILT()
-        elif app_version == "FILT_DECOMP":
+        elif app_version == "DECOMP_NR_A":
             self.__do_FILT_DECOMP()
         else:
             self.__do_NONE()
@@ -58,15 +58,20 @@ class Uc1_application(object):
         ])
 
         # DECOMP -> decompression, PROC -> DataProcessing
-        MM_GW_m = Message("MM_GW_m", "MM", "GW", instructions=self.__calcOktets(1),
+        MM_GW_m = Message("MM_GW_m", "MM", "GW",
+                          instructions=self.__calcOktets(1),
                           bytes=self.__calcInstruction(20, self.compressed_data)) # Kompresija na MMu
-        GW_NR_FILT_m = Message("GW_NR_FILT_m", "GW", "NR_FILT", instructions=self.__calcOktets(3),
+        GW_NR_FILT_m = Message("GW_NR_FILT_m", "GW", "NR_FILT",
+                               instructions=self.__calcOktets(3),
                                bytes=self.__calcInstruction(40, self.compressed_data))  # Filtracija
-        NR_FILT_NR_DECOMP_m = Message("NR_FILT_NR_DECOMP_m", "NR_FILT", "NR_DECOMP", instructions=self.__calcOktets(6),
+        NR_FILT_NR_DECOMP_m = Message("NR_FILT_NR_DECOMP_m", "NR_FILT", "NR_DECOMP",
+                                      instructions=self.__calcOktets(6),
                                       bytes=self.__calcInstruction(60, self.compressed_data))  # DEKOMPRESIJA; poruka koja se "filtrira" - izbacuje - ne salje dalje, ako je duplikat. u selectionu joj se mijenja "msg.dest" na sink ako je za filtraciju
-        NR_DECOMP_DC_PROC_m = Message("NR_DECOMP_DC_PROC_m", "NR_DECOMP", "DC_PROC", instructions=self.__calcOktets(12),
+        NR_DECOMP_DC_PROC_m = Message("NR_DECOMP_DC_PROC_m", "NR_DECOMP", "DC_PROC",
+                                      instructions=self.__calcOktets(12),
                                       bytes=self.__calcInstruction(60, self.decompressed_data))  # PROCESSING time
-        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE", instructions=self.__calcOktets(8),
+        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE",
+                                       instructions=self.__calcOktets(8),
                                        bytes=self.__calcInstruction(60, self.decompressed_data))  # STORAGE time
 
         # Filtracija pa Dekompozicija
@@ -107,10 +112,10 @@ class Uc1_application(object):
                                         bytes=self.__calcInstruction(20, self.compressed_data))  # komprsirani podatci
         GW_NR_DECOMP_m =       Message("GW_NR_DECOMP_m", "GW", "NR_DECOMP",
                                         instructions=self.__calcOktets(6),
-                                        bytes=self.__calcInstruction(40, self.compressed_data))  # dekompresija nema utjecaja FILTRACIJU
+                                        bytes=self.__calcInstruction(40, self.compressed_data))  # dekompresija OVDJE  nema utjecaja FILTRACIJU
         NR_DECOMP_NR_FILT_m =  Message("NR_DECOMP_NR_FILT_m", "NR_DECOMP", "NR_FILT",
                                         instructions=self.__calcOktets(3),
-                                        bytes=self.__calcInstruction(60, self.decompressed_data))  # dekompresija nema utjecaja na network, tu sam stavio jer je i u
+                                        bytes=self.__calcInstruction(60, self.decompressed_data))  # dekompresija OVDJE nema utjecaja na network, tu sam stavio jer je i u
         NR_FILT_DC_PROC_m =    Message("NR_FILT_DC_PROC_m", "NR_FILT", "DC_PROC",
                                         instructions =self.__calcOktets(12),
                                         bytes =self.__calcInstruction(60, self.decompressed_data))  # PROCESSING time
@@ -154,13 +159,17 @@ class Uc1_application(object):
         ])
 
         # DECOMP -> decompression, PROC -> DataProcessing
-        MM_GW_m = Message("MM_GW_m", "MM", "GW", instructions=self.__calcOktets(1),
+        MM_GW_m = Message("MM_GW_m", "MM", "GW",
+                          instructions=self.__calcOktets(1),
                           bytes=self.__calcInstruction(20, self.decompressed_data)) # Kompresija na MMu
-        GW_NR_FILT_m = Message("GW_NR_FILT_m", "GW", "NR_FILT", instructions=self.__calcOktets(3),
+        GW_NR_FILT_m = Message("GW_NR_FILT_m", "GW", "NR_FILT",
+                               instructions=self.__calcOktets(3),
                                bytes=self.__calcInstruction(40, self.decompressed_data))  # Filtracija
-        NR_FILT_DC_PROC_m = Message("NR_FILT_DC_PROC_m", "NR_FILT", "DC_PROC", instructions=self.__calcOktets(12),
-                                      bytes=self.__calcInstruction(60, self.decompressed_data))  # PROCESSING time
-        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE", instructions=self.__calcOktets(8), # STORAGE time
+        NR_FILT_DC_PROC_m = Message("NR_FILT_DC_PROC_m", "NR_FILT", "DC_PROC",
+                                    instructions=self.__calcOktets(12),
+                                    bytes=self.__calcInstruction(60, self.decompressed_data))  # PROCESSING time
+        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE",
+                                       instructions=self.__calcOktets(8), # STORAGE time
                                        bytes=self.__calcInstruction(60, self.decompressed_data))
         DUMMY_MESSAGE_m = Message("DUMMY_MESSAGE_m", "sada", "sads") # ovo je ovde samo da se sprijece if-ovi za app_version u uc1_placementu. NR_DECOMP kao "postoji" ali ustvari ga skros zaobilazimo.
 

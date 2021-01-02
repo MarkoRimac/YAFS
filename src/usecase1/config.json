@@ -18,7 +18,7 @@
   "P": "1",
   "M": "1",
   "Cr": "0.6",
-  "app_version": "FILT_DECOMP",
-  "nr_filt_placement_method": "HIGHEST_DEGREE",
-  "config_version": "1_N2003"
+  "app_version": "NONE",
+  "nr_filt_placement_method": "BC",
+  "config_version": "TESTING"
 }

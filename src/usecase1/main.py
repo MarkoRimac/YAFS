@@ -22,11 +22,11 @@ def main(data):
     #Application
     app = Uc1_application("UseCase1", data.app_version, t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, decompressionRatio=data.Cr)
 
-    placement = Uc1_placement(data.nr_filt_placement_method, data.nb_nr_filt_per_region, name="UseCase1")  # Inizializes when starting s
+    placement = Uc1_placement(data.nr_filt_placement_method, data.nb_nr_filt_per_region, data.app_version, name="UseCase1")  # Inizializes when starting s
 
-    if data.app_version == "DECOMP_FILT":
+    if data.app_version == "DECOMP_NR_A":
         selectorPath = Uc1_First_ShortestPath("NR_FILT_DC_PROC_m") # Message which is to be filtered
-    elif data.app_version == "FILT_DECOMP":
+    elif data.app_version == "DECOMP_NR_A":
         selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
     else:
         selectorPath = Uc1_First_ShortestPath("NR_FILT_DC_PROC_m")
@@ -57,10 +57,10 @@ def check_positive_float(value):
     return ival
 
 def check_app_version(value):
-    if value in ["DECOMP_FILT", "FILT_DECOMP", "NONE"]:
+    if value in ["DECOMP_NR_A", "DECOMP_NR_B", "NONE"]:
         return value
     else:
-        raise argparse.ArgumentTypeError("Please pick between: [DECOMP_FILT, FILT_DECOMP, NONE]")
+        raise argparse.ArgumentTypeError("Please pick between: [DECOMP_NR_A, DECOMP_NR_B, NONE]")
 
 def check_placement_type(value):
     if value in ["BC", "HIGHEST_DEGREE"]:
