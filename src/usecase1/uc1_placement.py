@@ -53,7 +53,7 @@ class Uc1_placement(Placement):
 
         self.__MM_placement(sim, topology, services, app)
         self.__DC_STORAGE_placement(sim, topology, services, app)
-        self.__DC_PROC_placement(sim, topology, services, app)
+        self.__DP_placement(sim, topology, services, app)
         self.__GW_placement(sim, topology, services, app)
         self.__NR_FILT_placement(sim, topology, services, app)
         self.__NR_DECOMP_placement(sim, topology, services, app)
@@ -73,10 +73,13 @@ class Uc1_placement(Placement):
                 self.NR_DECOM_nodes_ids.append(index)
                 id_DES = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [index])
                 updated_id_DES = topology.G.nodes[index]['id_DES'] + ' ' + str(id_DES[0])
-                if self.app_version == "DECOMP_NR_A":
-                    topology.G.add_node(index, type="GW_DECOMP", id_DES=updated_id_DES)
-                else:
-                    topology.G.add_node(index, type="GW_DECOMP", id_DES=updated_id_DES)
+                topology.G.add_node(index, type="GW_DECOMP", id_DES=updated_id_DES)
+        if self.app_version == "DECOMP_DP":
+            for index in self.DP_nodes_ids:
+                self.NR_DECOM_nodes_ids.append(index)
+                id_DES = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [index])
+                updated_id_DES = topology.G.nodes[index]['id_DES'] + ' ' + str(id_DES[0])
+                topology.G.add_node(index, type="DECOMP_DP", id_DES=updated_id_DES)
         if self.app_version == "DECOMP_SINGLE":
             a = 0
             # TODO:
@@ -115,13 +118,13 @@ class Uc1_placement(Placement):
         topology.G.add_node(self.DC_id, type="DC_STORAGE", id_DES=str(id_DES1[0]))
 
 
-    def __DC_PROC_placement(self, sim, topology, services, app):
+    def __DP_placement(self, sim, topology, services, app):
 
         #  highest_degree_T_node
         nodes = set(self.T_nodes_ids).difference(self.DC_nodes_ids)
         result = sorted(topology.G.degree(nodes), key=lambda x: x[1], reverse=True)
         # TODO: extend tako da prima vise DP na T cvorove i cak i na M cvorove!
-        self.DC_nodes_ids.append(result[0][0])
+        self.DP_nodes_ids.append(result[0][0])
         id_DES = sim.deploy_module(app.name, "DC_PROC", services["DC_PROC"], [result[0][0]])
         topology.G.add_node(result[0][0], type="DC_PROC", id_DES=str(id_DES[0]))
         self.__link_module_attribute_with_topology_nodes("DC_PROC", [result[0][0]], topology, app)

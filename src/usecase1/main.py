@@ -57,10 +57,10 @@ def check_positive_float(value):
     return ival
 
 def check_app_version(value):
-    if value in ["DECOMP_NR_A", "DECOMP_NR_B", "NONE", "DECOMP_GW"]:
+    if value in ["DECOMP_NR_A", "DECOMP_NR_B", "NONE", "DECOMP_GW", "DECOMP_DP"]:
         return value
     else:
-        raise argparse.ArgumentTypeError("Please pick between: [DECOMP_NR_A, DECOMP_NR_B, DECOMP_GW, NONE]")
+        raise argparse.ArgumentTypeError("Please pick between: [DECOMP_NR_A, DECOMP_NR_B, DECOMP_GW, DECOMP_DP, NONE]")
 
 def check_placement_type(value):
     if value in ["BC", "HIGHEST_DEGREE"]:

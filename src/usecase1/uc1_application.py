@@ -30,7 +30,7 @@ class Uc1_application(object):
 
         if app_version == "DECOMP_NR_B" or app_version == "DECOMP_GW":
             self.__do_DECOMP_FILT()
-        elif app_version == "DECOMP_NR_A":
+        elif app_version == "DECOMP_NR_A" or app_version == "DECOMP_DP":
             self.__do_FILT_DECOMP()
         else:
             self.__do_NONE()

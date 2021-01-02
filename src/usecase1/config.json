@@ -18,7 +18,7 @@
   "P": "1",
   "M": "1",
   "Cr": "0.6",
-  "app_version": "DECOMP_GW",
+  "app_version": "DECOMP_DP",
   "nr_filt_placement_method": "BC",
   "config_version": "TESTING"
 }
