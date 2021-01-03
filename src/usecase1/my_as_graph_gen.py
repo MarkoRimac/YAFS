@@ -205,9 +205,6 @@ class MY_as_graph_gen:
         node_options = set()
 
         self.G.add_node(i, type=kind)
-
-        self.customers[i] = set()
-        self.providers[i] = set()
         self.nodes[kind].add(i)
         if kind == "GW":
             r = self.reg_count

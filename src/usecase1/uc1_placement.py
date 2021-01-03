@@ -13,7 +13,7 @@ import random as rand
 
 class Uc1_placement(Placement):
 
-    def __init__(self, nr_filt_placement_method, nb_nr_filt_per_region, app_version, **kwargs):
+    def __init__(self, nr_filt_placement_method, nb_nr_filt_per_region, app_version, curr_position=0, **kwargs):
         super(Uc1_placement,self).__init__(**kwargs)
         self.nr_filt_placement_method = nr_filt_placement_method
         self.nb_nr_filt_per_region = nb_nr_filt_per_region
@@ -26,6 +26,7 @@ class Uc1_placement(Placement):
         self.NR_DECOM_nodes_ids = list()
         self.DP_nodes_ids = list()
         self.DC_nodes_ids = list()
+        self.curr_position = curr_position
 
     def initial_allocation(self, sim, app_name):
         app = sim.apps[app_name]
@@ -43,10 +44,10 @@ class Uc1_placement(Placement):
                 self.__link_module_attribute_with_topology_nodes("GW", self.GW_nodes_ids, topology, app) # oni su preodređenii već u definiciji topologije kroz "CP" cvorove.
             elif type == "T":
                 self.T_nodes_ids.append(id)
-                self.__link_module_attribute_with_topology_nodes("NR", self.T_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao NR
+                self.__link_module_attribute_with_topology_nodes("NR_FILT", self.T_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao NR
             elif type == "M":
                 self.M_nodes_ids.append(id)
-                self.__link_module_attribute_with_topology_nodes("NR", self.M_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao NR
+                self.__link_module_attribute_with_topology_nodes("NR_FILT", self.M_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao NR
                 #  attributi ce biti dodani kasnije na placementu za NR cvor.
 
         """ POPULATION! + PLACEMENT"""
@@ -80,9 +81,11 @@ class Uc1_placement(Placement):
                 id_DES = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [index])
                 updated_id_DES = topology.G.nodes[index]['id_DES'] + ' ' + str(id_DES[0])
                 topology.G.add_node(index, type="DECOMP_DP", id_DES=updated_id_DES)
-        if self.app_version == "DECOMP_SINGLE":
-            a = 0
-            # TODO:
+        if self.app_version == "DECOMP_ALONE":
+            self.NR_DECOM_nodes_ids.append(self.curr_position)
+            id_DES = sim.deploy_module(app.name, "NR_DECOMP", services["NR_DECOMP"], [self.curr_position])
+            self.__link_module_attribute_with_topology_nodes("NR_DECOMP", [self.curr_position], topology, app)
+            topology.G.add_node(self.curr_position, type="DECOMP_ALONE", id_DES=str(id_DES))
 
     def __NR_FILT_placement(self, sim, topology, services, app):
 

@@ -24,16 +24,14 @@ class Uc1_application(object):
         self.decompressed_data = 27
         self.compressed_data = self.decompressed_data * self.compressionRatio
 
-
-        #HELPERS
-        self.msgs = tuple()
-
         if app_version == "DECOMP_NR_B" or app_version == "DECOMP_GW":
             self.__do_DECOMP_FILT()
-        elif app_version == "DECOMP_NR_A" or app_version == "DECOMP_DP":
+        elif app_version == "DECOMP_NR_A" or app_version == "DECOMP_DP" or app_version == "DECOMP_ALONE":
             self.__do_FILT_DECOMP()
-        else:
+        elif app_version == "NONE":
             self.__do_NONE()
+        else:
+            raise exec("NOT SUPPORTED APP VERSION!")
 
     def __calcOktets(self, ratio):
         return ratio * self.N

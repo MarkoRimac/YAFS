@@ -5,9 +5,11 @@ import random
 class Uc1_First_ShortestPath(Selection):
     """Among all possible shorter paths, returns the first."""
 
-    def __init__(self, messageToBeFiltered):
+    def __init__(self, messageToBeFiltered, app_version="", curr_position=0):
         self.messageToBeFiltered = messageToBeFiltered
         self.forwardedMessages = list()
+        self.app_version = app_version
+        self.curr_position = curr_position
         super(Uc1_First_ShortestPath, self).__init__()
 
 
@@ -64,6 +66,19 @@ class Uc1_First_ShortestPath(Selection):
             path = random.choice(bestPaths)  # Nekada su duljine puteva do NR cvorova iste za vise NR cvorova. Odaberi randomly koji ces. Ovdje je mogce upotrijebiti neku jos dodatnu metriku za odabir sljedeceg NR cvora ako ih je vise unutar jedne regije!
             bestPaths = [path]
             bestDESs = [best_des[str(path)]]
+
+        # Only in DECOMP placement analisis
+        elif self.app_version == "DECOMP_ALONE" and message.dst == "NR_DECOMP":
+            path_predefined = [2, 17, 16, 4, 6, 5, 1]
+            bestPaths = [path_predefined[0:4]]
+            bestDESs = DES_dst # Samo je jedan DES u ovom testiranju!
+
+        # Only in DECOMP placement analisis
+        elif self.app_version == "DECOMP_ALONE" and message.dst == "DC_PROC":
+            path_predefined = [2, 17, 16, 4, 6, 5, 1]
+            bestPaths = [path_predefined[3:7]]
+            bestDESs = DES_dst # Samo je jedan DES u ovom testiranju!
+
         else:
             best_des = dict()  # Saves DES for corresponding path.
             for des in DES_dst:

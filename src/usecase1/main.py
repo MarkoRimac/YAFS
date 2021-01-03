@@ -13,6 +13,7 @@ from uc1_stats import Uc1_stats
 
 def main(data):
 
+    curr_position = 4
     rand.seed(data.seed)  # has to be an object.
     #TOPOLOGY creation
     t = Topology()
@@ -22,15 +23,16 @@ def main(data):
     #Application
     app = Uc1_application("UseCase1", data.app_version, t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, decompressionRatio=data.Cr)
 
-    placement = Uc1_placement(data.nr_filt_placement_method, data.nb_nr_filt_per_region, data.app_version, name="UseCase1")  # Inizializes when starting s
+    placement = Uc1_placement(data.nr_filt_placement_method, data.nb_nr_filt_per_region, data.app_version, name="UseCase1", curr_position=curr_position)  # Inizializes when starting s
 
     if data.app_version == "DECOMP_NR_A":
         selectorPath = Uc1_First_ShortestPath("NR_FILT_DC_PROC_m") # Message which is to be filtered
     elif data.app_version == "DECOMP_NR_A":
         selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
+    elif data.app_version == "DECOMP_ALONE":
+        selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m", app_version="DECOMP_ALONE",curr_position=curr_position)
     else:
         selectorPath = Uc1_First_ShortestPath("NR_FILT_DC_PROC_m")
-
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
     s.run(5000,show_progress_monitor=False)
@@ -57,10 +59,10 @@ def check_positive_float(value):
     return ival
 
 def check_app_version(value):
-    if value in ["DECOMP_NR_A", "DECOMP_NR_B", "NONE", "DECOMP_GW", "DECOMP_DP"]:
+    if value in ["DECOMP_NR_A", "DECOMP_NR_B", "NONE", "DECOMP_GW", "DECOMP_DP", "DECOMP_ALONE"]:
         return value
     else:
-        raise argparse.ArgumentTypeError("Please pick between: [DECOMP_NR_A, DECOMP_NR_B, DECOMP_GW, DECOMP_DP, NONE]")
+        raise argparse.ArgumentTypeError("Please pick between: [DECOMP_NR_A, DECOMP_NR_B, DECOMP_GW, DECOMP_DP, DECOMP_ALONE, NONE]")
 
 def check_placement_type(value):
     if value in ["BC", "HIGHEST_DEGREE"]:
