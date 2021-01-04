@@ -85,7 +85,7 @@ class Uc1_application(object):
         self.app.add_service_module("DC_STORAGE", DC_PROC_DC_STORAGE_m)  # Ide na timeout za storing koji je def u DC_PROC_DC_STORAGE_m poruci, i dalje je SINK pa zato nema "dest" poruku!
         #  self.app.add_service_module("NR_SINK", NR_DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
 
-        distribution = DeterministicDistribution_mm_uc1(15, self.topology.my_as_graph.total_num_of_mm,
+        distribution = DeterministicDistribution_mm_uc1(self.SOURCE_GENERATION_PERIOD_s, self.topology.my_as_graph.total_num_of_mm,
                                                         name="deterministicMM")
         self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)
         self.app.add_source_messages(MM_GW_m)
@@ -186,7 +186,7 @@ class Uc1_application(object):
                                     DC_PROC_DC_STORAGE_m)  # Ide na timeout za storing koji je def u DC_PROC_DC_STORAGE_m poruci, i dalje je SINK pa zato nema "dest" poruku!
         #  self.app.add_service_module("NR_SINK", NR_DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
 
-        distribution = DeterministicDistribution_mm_uc1(15, self.topology.my_as_graph.total_num_of_mm,
+        distribution = DeterministicDistribution_mm_uc1(self.SOURCE_GENERATION_PERIOD_s, self.topology.my_as_graph.total_num_of_mm,
                                                         name="deterministicMM")
         self.app.add_service_source("MM", message=MM_GW_m, distribution=distribution)
         self.app.add_source_messages(MM_GW_m)
