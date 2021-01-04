@@ -109,8 +109,9 @@ class Uc1_stats(Stats):
         plt.ylabel('number of modules')
         plt.xlabel('utilization in %')
         plt.locator_params(axis='y', integer=True)
-        num_bins = 100
-        n, bins, patches = plt.hist(values["utilization"].to_numpy().tolist(), num_bins, facecolor='blue', alpha=1)
+        num_bins = 20
+        plt.xticks(np.arange(0, 100 + 1, 5))
+        n, bins, patches = plt.hist(values["utilization"].to_numpy().tolist(),  num_bins, range=[0, 100], facecolor='blue', alpha=1)
         if not os.path.exists("output/" + "config" + self.config_version + "_" + self.app_version):
             os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
         plt.savefig("output/" + "config" + self.config_version + "_" + self.app_version + "/" + node_type + "_utilization_histo.png", dpi=300)
