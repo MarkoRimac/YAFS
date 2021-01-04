@@ -21,6 +21,5 @@ class DeterministicDistribution_mm_uc1(Distribution):
             self.index += 1
             self.startup_counter -= 1
         else:
-            result = self.time + self.rand_start_values[self.index % self.nb_mm_nodes]
-            self.index += 1
+            result = self.time
         return result
