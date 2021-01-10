@@ -3,6 +3,7 @@
 import networkx as nx
 import random as rand
 import math
+import uc1_distribution
 from networkx.utils import py_random_state
 
 __all__ = ["my_as_graph_gen"]
@@ -131,6 +132,7 @@ class MY_as_graph_gen:
 
         self.LoRaDatarate = lorawan_datarate # odavde se izvlaci BW
         self.LoRaPR = 0.01 # in s
+        self.node_in_regions_distribution = uc1_distribution.Distribution_of_core_nodes_in_regions(name="Distribution_of_core_nodes_in_regions")
 
     def t_graph(self):
         """ Generates the core mesh network of tier one nodes of a AS graph.
@@ -200,7 +202,12 @@ class MY_as_graph_gen:
         if kind == "GW":
             regs = 1
         else:
-            regs = int(math.ceil(rand.random() * self.nb_regions)) #  Broj regija u kojoj se M cvor nalazi.
+            #  Broj regija u kojoj se M cvor nalazi.
+            x = self.node_in_regions_distribution.next()
+            if x > self.nb_regions:
+                regs = self.nb_regions
+            else:
+                regs = x
 
         node_options = set()
 
