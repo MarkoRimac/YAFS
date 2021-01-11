@@ -33,8 +33,9 @@ def main(data):
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
-    s.run(5000,show_progress_monitor=False)
-    stats = Uc1_stats(str(data.config_version), data.app_version)
+    runtime_time = 5000
+    s.run(runtime_time,show_progress_monitor=False)
+    stats = Uc1_stats(str(data.config_version), data.app_version, runtime_time)
     stats.uc1_do_stats()
     stats.uc1_stats_save_gexf(t, data.outFILE) # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
 

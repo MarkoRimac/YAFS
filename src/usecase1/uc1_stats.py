@@ -9,10 +9,11 @@ import shutil
 
 class Uc1_stats(Stats):
 
-    def __init__(self, config_version, app_version, **kwargs):
+    def __init__(self, config_version, app_version, runtime_time, **kwargs):
         super(Uc1_stats, self).__init__(**kwargs)
         self.config_version = config_version
         self.app_version = app_version
+        self.runtime_time = runtime_time
 
     def uc1_do_stats(self):
         self.__uc1_service_utilizations()
@@ -47,6 +48,7 @@ class Uc1_stats(Stats):
         id_x_list = list()
         time_y_list = list()
         id_x_no_list = list() #  id poruka koje nisu uspjele doci do kraja.
+        time_y_no_list = list()
         for id in x['id']:
 
             time_in = x[x['id'] == id]['time_emit'].values[0]
@@ -57,6 +59,7 @@ class Uc1_stats(Stats):
             except IndexError:
                 id_x_no_list.append(time_in)
                 result_time = 'NaN'
+                time_y_no_list.append(-1)
 
         stats = linregress(id_x_list, time_y_list)
 
@@ -72,6 +75,20 @@ class Uc1_stats(Stats):
         if not os.path.exists("output/" + "config" + self.config_version + "_" + self.app_version):
             os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
         plt.savefig("output/" + "config" + self.config_version + "_" + self.app_version + "/end_to_end.png", dpi=300)
+
+        plt.clf()
+
+        plt.ylabel('broj poruka')
+        plt.xlabel('vrijeme od izvora do ponora')
+        plt.locator_params(axis='y', integer=True)
+        num_bins = 11
+        plt.xticks(np.arange(-500, self.runtime_time + 1, (self.runtime_time+500)/num_bins))
+        n, bins, patches = plt.hist(time_y_list + time_y_no_list,  num_bins, facecolor='blue', range=[-500,self.runtime_time], alpha=1)
+        patches[0].set_facecolor('r')
+
+        if not os.path.exists("output/" + "config" + self.config_version + "_" + self.app_version):
+            os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
+        plt.savefig("output/" + "config" + self.config_version + "_" + self.app_version + "/end_to_end_utilization_histo.png", dpi=300)
 
         plt.clf()
 
