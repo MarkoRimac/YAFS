@@ -29,19 +29,19 @@ class Uc1_stats(Stats):
 
         values = self.__get_df_service_utilization_with_des_id("GW", 5000)
         self.__uc1_plot_utilization(values, "GW")
-        values = self.__get_df_service_utilization_with_des_id("NR_FILT", 5000)
-        self.__uc1_plot_utilization(values, "NR_FILT")
-        values = self.__get_df_service_utilization_with_des_id("NR_DECOMP", 5000)
-        self.__uc1_plot_utilization(values, "NR_DECOMP")
-        values = self.__get_df_service_utilization_with_des_id("DC_PROC", 5000)
-        self.__uc1_plot_utilization(values, "DC_PROC")
-        values = self.__get_df_service_utilization_with_des_id("DC_STORAGE", 5000)
-        self.__uc1_plot_utilization(values, "DC_STORAGE")
+        values = self.__get_df_service_utilization_with_des_id("FILT", 5000)
+        self.__uc1_plot_utilization(values, "FILT")
+        values = self.__get_df_service_utilization_with_des_id("DECOMP", 5000)
+        self.__uc1_plot_utilization(values, "DECOMP")
+        values = self.__get_df_service_utilization_with_des_id("DP", 5000)
+        self.__uc1_plot_utilization(values, "DP")
+        values = self.__get_df_service_utilization_with_des_id("DS", 5000)
+        self.__uc1_plot_utilization(values, "DS")
 
 
     def __uc1_end_to_end_time(self):
 
-        x = self.df[self.df['message'].isin(['MM_GW_m', 'DC_PROC_DC_STORAGE_m'])]
+        x = self.df[self.df['message'].isin(['MM_GW_m', 'DP_DS_m'])]
         x = x.drop_duplicates(['id', 'message'])    #  Dropaj one poruke koje su se slale na vise GW-a, ostavi samo jednu
         x = x.loc[:, ['id', 'message', 'time_emit']]
 

@@ -601,7 +601,7 @@ class Sim:
                             self.logger.debug(
                                 "(App:%s#DES:%i#%s)\tModule - Sink Message:\t%s" % (app_name, ides, module, msg.name))
 
-                            # MARKO: SINK servis na DC_STORAGE modulu ovde završi.
+                            # MARKO: SINK servis na DS modulu ovde završi.
                             continue
                         else:
                             # MARKO: Ovaj if sam maknuo, ne prolazi jer ga nigdje nisam definirao, a ne kuzim bas smisao zasto bi se moralo definirati.

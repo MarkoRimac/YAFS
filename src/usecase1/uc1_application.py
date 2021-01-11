@@ -28,9 +28,9 @@ class Uc1_application(object):
         #HELPERS
         self.msgs = tuple()
 
-        if app_version == "DECOMP_NR_B" or app_version == "DECOMP_GW":
+        if app_version == "DECOMP_FILT_B" or app_version == "DECOMP_GW":
             self.__do_DECOMP_FILT()
-        elif app_version == "DECOMP_NR_A" or app_version == "DECOMP_DP":
+        elif app_version == "DECOMP_FILT_A" or app_version == "DECOMP_DP":
             self.__do_FILT_DECOMP()
         else:
             self.__do_NONE()
@@ -47,13 +47,13 @@ class Uc1_application(object):
             {"MM": {"RAM": self.M, "IPT": self.P, "Type": Application.TYPE_SOURCE}},
             # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
             {"GW": {"RAM": 100 * self.M, "IPT": 20 * self.P, "Type": Application.TYPE_MODULE}},
-            {"NR_FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
+            {"FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
             # TODO Filtracija i Dekompresija ce biti zasebni procesi na istom cvoru. Kako napraviti shareanje resursa IPT-a? Za sada sam stavio da svaki ima svoj IPT koji koristi, ISTO I DOLJE RADIM SA dva procesa na DC!
-            {"NR_DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
-            {"NR_SINK": {"Type": Application.TYPE_SINK}},
+            {"DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
+            {"FILT_SINK": {"Type": Application.TYPE_SINK}},
             # PURE SINK! Modul za sebe, koji će se staviti na isti čvor na kojem su NR-ovi. On  će služiti kao sink za poruke koje su se zaprimile više puta, RAM i IPT za takav modul nisu bitni!
-            {"DC_PROC": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
-            {"DC_STORAGE": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
+            {"DP": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
+            {"DS": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
             # Servis za timeout na "storage" i servis za "sink". U outputu csv-a ne dobijemo ovu poruku.
         ])
 
@@ -61,29 +61,29 @@ class Uc1_application(object):
         MM_GW_m = Message("MM_GW_m", "MM", "GW",
                           instructions=self.__calcOktets(1),
                           bytes=self.__calcInstruction(20, self.compressed_data)) # Kompresija na MMu
-        GW_NR_FILT_m = Message("GW_NR_FILT_m", "GW", "NR_FILT",
+        GW_FILT_m = Message("GW_FILT_m", "GW", "FILT",
                                instructions=self.__calcOktets(3),
                                bytes=self.__calcInstruction(40, self.compressed_data))  # Filtracija
-        NR_FILT_NR_DECOMP_m = Message("NR_FILT_NR_DECOMP_m", "NR_FILT", "NR_DECOMP",
+        FILT_DECOMP_m = Message("FILT_DECOMP_m", "FILT", "DECOMP",
                                       instructions=self.__calcOktets(6),
                                       bytes=self.__calcInstruction(60, self.compressed_data))  # DEKOMPRESIJA; poruka koja se "filtrira" - izbacuje - ne salje dalje, ako je duplikat. u selectionu joj se mijenja "msg.dest" na sink ako je za filtraciju
-        NR_DECOMP_DC_PROC_m = Message("NR_DECOMP_DC_PROC_m", "NR_DECOMP", "DC_PROC",
+        DECOMP_DP_m = Message("DECOMP_DP_m", "DECOMP", "DP",
                                       instructions=self.__calcOktets(12),
                                       bytes=self.__calcInstruction(60, self.decompressed_data))  # PROCESSING time
-        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE",
+        DP_DS_m = Message("DP_DS_m", "DP", "DS",
                                        instructions=self.__calcOktets(8),
                                        bytes=self.__calcInstruction(60, self.decompressed_data))  # STORAGE time
 
         # Filtracija pa Dekompozicija
         # source is added above in modules.
-        self.app.add_service_module("GW", MM_GW_m, GW_NR_FILT_m)
-        self.app.add_service_module("NR_FILT", GW_NR_FILT_m, NR_FILT_NR_DECOMP_m)
-        self.app.add_service_module("NR_DECOMP", NR_FILT_NR_DECOMP_m, NR_DECOMP_DC_PROC_m)
-        self.app.add_service_module("DC_PROC", NR_DECOMP_DC_PROC_m, DC_PROC_DC_STORAGE_m)
+        self.app.add_service_module("GW", MM_GW_m, GW_FILT_m)
+        self.app.add_service_module("FILT", GW_FILT_m, FILT_DECOMP_m)
+        self.app.add_service_module("DECOMP", FILT_DECOMP_m, DECOMP_DP_m)
+        self.app.add_service_module("DP", DECOMP_DP_m, DP_DS_m)
 
         """ POPULATION """
-        self.app.add_service_module("DC_STORAGE", DC_PROC_DC_STORAGE_m)  # Ide na timeout za storing koji je def u DC_PROC_DC_STORAGE_m poruci, i dalje je SINK pa zato nema "dest" poruku!
-        #  self.app.add_service_module("NR_SINK", NR_DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
+        self.app.add_service_module("DS", DP_DS_m)  # Ide na timeout za storing koji je def u DP_DS_m poruci, i dalje je SINK pa zato nema "dest" poruku!
+        #  self.app.add_service_module("FILT_SINK", DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
 
         distribution = DeterministicDistribution_mm_uc1(self.SOURCE_GENERATION_PERIOD_s, self.topology.my_as_graph.total_num_of_mm,
                                                         name="deterministicMM")
@@ -99,41 +99,41 @@ class Uc1_application(object):
             {"MM": {"RAM": self.M, "IPT": self.P, "Type": Application.TYPE_SOURCE}},
             # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
             {"GW": {"RAM": 100 * self.M, "IPT": 20 * self.P, "Type": Application.TYPE_MODULE}},
-            {"NR_FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}}, # TODO Filtracija i Dekompresija ce biti zasebni procesi na istom cvoru. Kako napraviti shareanje resursa IPT-a? Za sada sam stavio da svaki ima svoj IPT koji koristi, ISTO I DOLJE RADIM SA dva procesa na DC!
-            {"NR_DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
-            {"NR_SINK": {"Type": Application.TYPE_SINK}}, # PURE SINK! Modul za sebe, koji će se staviti na isti čvor na kojem su NR-ovi. On  će služiti kao sink za poruke koje su se zaprimile više puta, RAM i IPT za takav modul nisu bitni!
-            {"DC_PROC": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
-            {"DC_STORAGE": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}}, # Servis za timeout na "storage" i servis za "sink". U outputu csv-a ne dobijemo ovu poruku.
+            {"FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}}, # TODO Filtracija i Dekompresija ce biti zasebni procesi na istom cvoru. Kako napraviti shareanje resursa IPT-a? Za sada sam stavio da svaki ima svoj IPT koji koristi, ISTO I DOLJE RADIM SA dva procesa na DC!
+            {"DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
+            {"FILT_SINK": {"Type": Application.TYPE_SINK}}, # PURE SINK! Modul za sebe, koji će se staviti na isti čvor na kojem su NR-ovi. On  će služiti kao sink za poruke koje su se zaprimile više puta, RAM i IPT za takav modul nisu bitni!
+            {"DP": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
+            {"DS": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}}, # Servis za timeout na "storage" i servis za "sink". U outputu csv-a ne dobijemo ovu poruku.
         ])
 
         # DECOMP -> decompression, PROC -> DataProcessing
         MM_GW_m =              Message("MM_GW_m", "MM", "GW",
                                         instructions=self.__calcOktets(1),
                                         bytes=self.__calcInstruction(20, self.compressed_data))  # komprsirani podatci
-        GW_NR_DECOMP_m =       Message("GW_NR_DECOMP_m", "GW", "NR_DECOMP",
+        GW_DECOMP_m =       Message("GW_DECOMP_m", "GW", "DECOMP",
                                         instructions=self.__calcOktets(6),
                                         bytes=self.__calcInstruction(40, self.compressed_data))  # dekompresija OVDJE  nema utjecaja FILTRACIJU
-        NR_DECOMP_NR_FILT_m =  Message("NR_DECOMP_NR_FILT_m", "NR_DECOMP", "NR_FILT",
+        DECOMP_FILT_m =  Message("DECOMP_FILT_m", "DECOMP", "FILT",
                                         instructions=self.__calcOktets(3),
                                         bytes=self.__calcInstruction(60, self.decompressed_data))  # dekompresija OVDJE nema utjecaja na network, tu sam stavio jer je i u
-        NR_FILT_DC_PROC_m =    Message("NR_FILT_DC_PROC_m", "NR_FILT", "DC_PROC",
+        FILT_DP_m =    Message("FILT_DP_m", "FILT", "DP",
                                         instructions =self.__calcOktets(12),
                                         bytes =self.__calcInstruction(60, self.decompressed_data))  # PROCESSING time
-        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE",
+        DP_DS_m = Message("DP_DS_m", "DP", "DS",
                                         instructions=self.__calcOktets(8),
                                         bytes=self.__calcInstruction(60, self.decompressed_data))  # STORAGE time
 
         # Filtracija pa Dekompozicija
         # source is added above in modules.
-        self.app.add_service_module("GW", MM_GW_m, GW_NR_DECOMP_m)
-        self.app.add_service_module("NR_DECOMP", GW_NR_DECOMP_m, NR_DECOMP_NR_FILT_m)
-        self.app.add_service_module("NR_FILT", NR_DECOMP_NR_FILT_m, NR_FILT_DC_PROC_m)
-        self.app.add_service_module("DC_PROC", NR_FILT_DC_PROC_m, DC_PROC_DC_STORAGE_m)
+        self.app.add_service_module("GW", MM_GW_m, GW_DECOMP_m)
+        self.app.add_service_module("DECOMP", GW_DECOMP_m, DECOMP_FILT_m)
+        self.app.add_service_module("FILT", DECOMP_FILT_m, FILT_DP_m)
+        self.app.add_service_module("DP", FILT_DP_m, DP_DS_m)
 
         """ POPULATION """
-        self.app.add_service_module("DC_STORAGE",
-                                    DC_PROC_DC_STORAGE_m)  # Ide na timeout za storing koji je def u DC_PROC_DC_STORAGE_m poruci, i dalje je SINK pa zato nema "dest" poruku!
-        #  self.app.add_service_module("NR_SINK", NR_DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
+        self.app.add_service_module("DS",
+                                    DP_DS_m)  # Ide na timeout za storing koji je def u DP_DS_m poruci, i dalje je SINK pa zato nema "dest" poruku!
+        #  self.app.add_service_module("FILT_SINK", DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
 
         distribution = DeterministicDistribution_mm_uc1(self.SOURCE_GENERATION_PERIOD_s, self.topology.my_as_graph.total_num_of_mm,
                                                         name="deterministicMM")
@@ -148,13 +148,13 @@ class Uc1_application(object):
             {"MM": {"RAM": self.M, "IPT": self.P, "Type": Application.TYPE_SOURCE}},
             # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
             {"GW": {"RAM": 100 * self.M, "IPT": 20 * self.P, "Type": Application.TYPE_MODULE}},
-            {"NR_FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
+            {"FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
             # TODO Filtracija i Dekompresija ce biti zasebni procesi na istom cvoru. Kako napraviti shareanje resursa IPT-a? Za sada sam stavio da svaki ima svoj IPT koji koristi, ISTO I DOLJE RADIM SA dva procesa na DC!
-            {"NR_DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}}, # Not really used here.
-            {"NR_SINK": {"Type": Application.TYPE_SINK}},
+            {"DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}}, # Not really used here.
+            {"FILT_SINK": {"Type": Application.TYPE_SINK}},
             # PURE SINK! Modul za sebe, koji će se staviti na isti čvor na kojem su NR-ovi. On  će služiti kao sink za poruke koje su se zaprimile više puta, RAM i IPT za takav modul nisu bitni!
-            {"DC_PROC": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
-            {"DC_STORAGE": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
+            {"DP": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
+            {"DS": {"RAM": 1000 * self.P, "IPT": 10000 * self.P, "Type": Application.TYPE_MODULE}},
             # Servis za timeout na "storage" i servis za "sink". U outputu csv-a ne dobijemo ovu poruku.
         ])
 
@@ -162,29 +162,29 @@ class Uc1_application(object):
         MM_GW_m = Message("MM_GW_m", "MM", "GW",
                           instructions=self.__calcOktets(1),
                           bytes=self.__calcInstruction(20, self.decompressed_data)) # Kompresija na MMu
-        GW_NR_FILT_m = Message("GW_NR_FILT_m", "GW", "NR_FILT",
+        GW_FILT_m = Message("GW_FILT_m", "GW", "FILT",
                                instructions=self.__calcOktets(3),
                                bytes=self.__calcInstruction(40, self.decompressed_data))  # Filtracija
-        NR_FILT_DC_PROC_m = Message("NR_FILT_DC_PROC_m", "NR_FILT", "DC_PROC",
+        FILT_DP_m = Message("FILT_DP_m", "FILT", "DP",
                                     instructions=self.__calcOktets(12),
                                     bytes=self.__calcInstruction(60, self.decompressed_data))  # PROCESSING time
-        DC_PROC_DC_STORAGE_m = Message("DC_PROC_DC_STORAGE_m", "DC_PROC", "DC_STORAGE",
+        DP_DS_m = Message("DP_DS_m", "DP", "DS",
                                        instructions=self.__calcOktets(8), # STORAGE time
                                        bytes=self.__calcInstruction(60, self.decompressed_data))
-        DUMMY_MESSAGE_m = Message("DUMMY_MESSAGE_m", "sada", "sads") # ovo je ovde samo da se sprijece if-ovi za app_version u uc1_placementu. NR_DECOMP kao "postoji" ali ustvari ga skros zaobilazimo.
+        DUMMY_MESSAGE_m = Message("DUMMY_MESSAGE_m", "sada", "sads") # ovo je ovde samo da se sprijece if-ovi za app_version u uc1_placementu. DECOMP kao "postoji" ali ustvari ga skros zaobilazimo.
 
         # Filtracija pa Dekompozicija
         # source is added above in modules.
-        self.app.add_service_module("GW", MM_GW_m, GW_NR_FILT_m)
-        self.app.add_service_module("NR_FILT", GW_NR_FILT_m, NR_FILT_DC_PROC_m)
-        self.app.add_service_module("DC_PROC", NR_FILT_DC_PROC_m, DC_PROC_DC_STORAGE_m)
-        self.app.add_service_module("NR_DECOMP", DUMMY_MESSAGE_m, DUMMY_MESSAGE_m) # ovo je ovde samo da se sprijece if-ovi za app_version u uc1_placementu. NR_DECOMP kao "postoji" ali ustvari ga skros zaobilazimo.
+        self.app.add_service_module("GW", MM_GW_m, GW_FILT_m)
+        self.app.add_service_module("FILT", GW_FILT_m, FILT_DP_m)
+        self.app.add_service_module("DP", FILT_DP_m, DP_DS_m)
+        self.app.add_service_module("DECOMP", DUMMY_MESSAGE_m, DUMMY_MESSAGE_m) # ovo je ovde samo da se sprijece if-ovi za app_version u uc1_placementu. DECOMP kao "postoji" ali ustvari ga skros zaobilazimo.
 
 
         """ POPULATION """
-        self.app.add_service_module("DC_STORAGE",
-                                    DC_PROC_DC_STORAGE_m)  # Ide na timeout za storing koji je def u DC_PROC_DC_STORAGE_m poruci, i dalje je SINK pa zato nema "dest" poruku!
-        #  self.app.add_service_module("NR_SINK", NR_DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
+        self.app.add_service_module("DS",
+                                    DP_DS_m)  # Ide na timeout za storing koji je def u DP_DS_m poruci, i dalje je SINK pa zato nema "dest" poruku!
+        #  self.app.add_service_module("FILT_SINK", DECOMP_m)  # NE RADIM OVO, jer sam ga gore definirao kao PURE SINK MODUL! Ostavio sam ovu liniju cisto da se lakse vidi sta ne treba radit
 
         distribution = DeterministicDistribution_mm_uc1(self.SOURCE_GENERATION_PERIOD_s, self.topology.my_as_graph.total_num_of_mm,
                                                         name="deterministicMM")

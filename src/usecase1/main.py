@@ -25,11 +25,11 @@ def main(data):
     placement = Uc1_placement(data.nr_filt_placement_method, data.nb_nr_filt_per_region, data.app_version, name="UseCase1")  # Inizializes when starting s
 
     if data.app_version == "DECOMP_NR_A":
-        selectorPath = Uc1_First_ShortestPath("NR_FILT_DC_PROC_m") # Message which is to be filtered
+        selectorPath = Uc1_First_ShortestPath("FILT_DP_m") # Message which is to be filtered
     elif data.app_version == "DECOMP_NR_A":
-        selectorPath = Uc1_First_ShortestPath("NR_FILT_NR_DECOMP_m")
+        selectorPath = Uc1_First_ShortestPath("FILT_DECOMP_m")
     else:
-        selectorPath = Uc1_First_ShortestPath("NR_FILT_DC_PROC_m")
+        selectorPath = Uc1_First_ShortestPath("FILT_DP_m")
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
@@ -110,7 +110,7 @@ def get_and_check_args(data):
         raise argparse.ArgumentTypeError("Please make sure that max possible number of gateways (considering 3sigma normal distribution with a variance) be less than a total nb_core_nodes! ")
 
     if arguments.nb_nr_filt_per_region * arguments.nb_regions > (arguments.nb_core_nodes_per_region + arguments.nb_core_nodes_per_region_variance * 3) - (arguments.nb_gw_per_region + arguments.nb_gw_per_region_variance * 3):
-        raise argparse.ArgumentTypeError("Not enough free core nodes for that amount of NR_FILT modules in region!")
+        raise argparse.ArgumentTypeError("Not enough free core nodes for that amount of FILT modules in region!")
 
     return arguments
 

@@ -25,10 +25,10 @@ class Uc1_First_ShortestPath(Selection):
 
         if message.name == self.messageToBeFiltered:
             if message.id in self.forwardedMessages:
-                message.dst = "NR_SINK" #  FORWARDAJ PORUKU NA SINK!
-                DES_dst = alloc_module[app_name]["NR_SINK"]
+                message.dst = "FILT_SINK" #  FORWARDAJ PORUKU NA SINK!
+                DES_dst = alloc_module[app_name]["FILT_SINK"]
                 bestPaths = [[node_src]]
-                for des in DES_dst: #  Nadi NR_SINK DES proces na src cvoru
+                for des in DES_dst: #  Nadi FILT_SINK DES proces na src cvoru
                     if alloc_DES[des] == node_src:
                         bestDESs = [des]
                         break
@@ -47,7 +47,7 @@ class Uc1_First_ShortestPath(Selection):
                 for path in paths:
                     bestPaths.append(path) #  Vise pathova ce se poslati MM-u. To ce uzrokovat da dode do broadcastinga MM poruka na vise GW cvorova!
                     bestDESs.append(des)
-        elif message.dst == "NR_FILT":
+        elif message.dst == "FILT":
             best_des = dict()  # Saves DES for corresponding path.
             for des in DES_dst:
                 dst_node = alloc_DES[des]
