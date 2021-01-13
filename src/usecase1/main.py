@@ -3,7 +3,7 @@ import argparse
 import json
 import networkx as nx
 from topology import Topology
-from my_as_graph_gen import my_random_internet_as_graph
+from uc1_topology import my_random_internet_as_graph
 from uc1_application import Uc1_application
 from uc1_placement import Uc1_placement
 from uc1_selection import Uc1_First_ShortestPath
@@ -20,16 +20,16 @@ def main(data):
     t.G = AS_graph.G
     t.add_as_graph_link(AS_graph)
     #Application
-    app = Uc1_application("UseCase1", data.app_version, t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, decompressionRatio=data.Cr)
+    app = Uc1_application("UseCase1", data.app_version, t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, compressionRatio=data.Cr)
 
     placement = Uc1_placement(data.nr_filt_placement_method, data.nb_nr_filt_per_region, data.app_version, name="UseCase1")  # Inizializes when starting s
 
-    if data.app_version == "DECOMP_NR_A":
+    if data.app_version == "DECOMP_FILT_B" or data.app_version == "DECOMP_GW" or data.app_version == "NONE":
         selectorPath = Uc1_First_ShortestPath("FILT_DP_m") # Message which is to be filtered
-    elif data.app_version == "DECOMP_NR_A":
+    elif data.app_version == "DECOMP_FILT_A" or data.app_version == "DECOMP_DP":
         selectorPath = Uc1_First_ShortestPath("FILT_DECOMP_m")
     else:
-        selectorPath = Uc1_First_ShortestPath("FILT_DP_m")
+        raise exec("Unknown app_version!")
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
@@ -58,10 +58,10 @@ def check_positive_float(value):
     return ival
 
 def check_app_version(value):
-    if value in ["DECOMP_NR_A", "DECOMP_NR_B", "NONE", "DECOMP_GW", "DECOMP_DP"]:
+    if value in ["DECOMP_FILT_A", "DECOMP_FILT_B", "NONE", "DECOMP_GW", "DECOMP_DP"]:
         return value
     else:
-        raise argparse.ArgumentTypeError("Please pick between: [DECOMP_NR_A, DECOMP_NR_B, DECOMP_GW, DECOMP_DP, NONE]")
+        raise argparse.ArgumentTypeError("Please pick between: [DECOMP_FILT_A, DECOMP_FILT_B, DECOMP_GW, DECOMP_DP, NONE]")
 
 def check_placement_type(value):
     if value in ["BC", "HIGHEST_DEGREE"]:

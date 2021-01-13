@@ -6,7 +6,7 @@ import math
 import uc1_distribution
 from networkx.utils import py_random_state
 
-__all__ = ["my_as_graph_gen"]
+__all__ = ["uc1_topology.py"]
 
 
 def uniform_int_from_avg(a, m, seed):

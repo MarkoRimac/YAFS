@@ -23,7 +23,7 @@ class Uc1_placement(Placement):
         self.MM_nodes_ids = list()
         self.GW_nodes_ids = list()
         self.FILT_nodes_ids = list()
-        self.NR_DECOM_nodes_ids = list()
+        self.FILT_DECOM_nodes_ids = list()
         self.DP_nodes_ids = list()
         self.DC_nodes_ids = list()
 
@@ -43,11 +43,11 @@ class Uc1_placement(Placement):
                 self.__link_module_attribute_with_topology_nodes("GW", self.GW_nodes_ids, topology, app) # oni su preodređenii već u definiciji topologije kroz "CP" cvorove.
             elif type == "T":
                 self.T_nodes_ids.append(id)
-                self.__link_module_attribute_with_topology_nodes("NR", self.T_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao NR
+                self.__link_module_attribute_with_topology_nodes("FILT", self.T_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao FILT
             elif type == "M":
                 self.M_nodes_ids.append(id)
-                self.__link_module_attribute_with_topology_nodes("NR", self.M_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao NR
-                #  attributi ce biti dodani kasnije na placementu za NR cvor.
+                self.__link_module_attribute_with_topology_nodes("FILT", self.M_nodes_ids, topology, app)  # neka svi ostali cvorovi imaju atribute kao FILT
+                #  attributi ce biti dodani kasnije na placementu za FILT cvor.
 
         """ POPULATION! + PLACEMENT"""
 
@@ -59,24 +59,24 @@ class Uc1_placement(Placement):
         self.__DECOMP_placement(sim, topology, services, app)
 
     def __DECOMP_placement(self, sim, topology, services, app):
-        if self.app_version == "DECOMP_NR_A" or self.app_version == "DECOMP_NR_B":
+        if self.app_version == "DECOMP_FILT_A" or self.app_version == "DECOMP_FILT_B":
             for index in self.FILT_nodes_ids:
-                self.NR_DECOM_nodes_ids.append(index)
+                self.FILT_DECOM_nodes_ids.append(index)
                 id_DES = sim.deploy_module(app.name, "DECOMP", services["DECOMP"], [index])
                 updated_id_DES = topology.G.nodes[index]['id_DES'] + ' ' + str(id_DES[0])
-                if self.app_version == "DECOMP_NR_A":
+                if self.app_version == "DECOMP_FILT_A":
                     topology.G.add_node(index, type="FILT_DECOMP", id_DES=updated_id_DES)
                 else:
                     topology.G.add_node(index, type="DECOMP_FILT", id_DES=updated_id_DES)
         if self.app_version == "DECOMP_GW":
             for index in self.GW_nodes_ids:
-                self.NR_DECOM_nodes_ids.append(index)
+                self.FILT_DECOM_nodes_ids.append(index)
                 id_DES = sim.deploy_module(app.name, "DECOMP", services["DECOMP"], [index])
                 updated_id_DES = topology.G.nodes[index]['id_DES'] + ' ' + str(id_DES[0])
                 topology.G.add_node(index, type="GW_DECOMP", id_DES=updated_id_DES)
         if self.app_version == "DECOMP_DP":
             for index in self.DP_nodes_ids:
-                self.NR_DECOM_nodes_ids.append(index)
+                self.FILT_DECOM_nodes_ids.append(index)
                 id_DES = sim.deploy_module(app.name, "DECOMP", services["DECOMP"], [index])
                 updated_id_DES = topology.G.nodes[index]['id_DES'] + ' ' + str(id_DES[0])
                 topology.G.add_node(index, type="DECOMP_DP", id_DES=updated_id_DES)
@@ -139,7 +139,7 @@ class Uc1_placement(Placement):
 
 
     def __highest_degree_nr_filt_placement(self, sim, topology, services, app):
-        taken_nodes = list() # sprjecava da na dva ista cvora bude NR filt za dvije regije.
+        taken_nodes = list() # sprjecava da na dva ista cvora bude FILT filt za dvije regije.
         for region in topology.my_as_graph.regions.keys():
 
             nodes = topology.my_as_graph.regions[region].intersection(self.M_nodes_ids).difference(taken_nodes)
@@ -149,14 +149,14 @@ class Uc1_placement(Placement):
             for _ in range(self.nb_nr_filt_per_region):
                 taken_nodes.append(result[0][0])
                 id_DES = sim.deploy_module(app.name, "FILT", services["FILT"], [result[0][0]])
-                topology.G.add_node(result[0][0], regions=region, type="FILT", id_DES=str(id_DES[0]))  # Daj tom FILT atribut kao da je u jednoj regiji, da kasnije u selectino methodu neki MM iz jedne refgije preko shortest patha ne odaberu neki drugi NR iz druge regije zato sto im je blizi.
+                topology.G.add_node(result[0][0], regions=region, type="FILT", id_DES=str(id_DES[0]))  # Daj tom FILT atribut kao da je u jednoj regiji, da kasnije u selectino methodu neki MM iz jedne refgije preko shortest patha ne odaberu neki drugi FILT iz druge regije zato sto im je blizi.
                 sim.deploy_sink(app.name, result[0][0], "FILT_SINK") #  Dodaj sink! On nema DES PROCES!
                 self.__link_module_attribute_with_topology_nodes("FILT", [result[0][0]], topology, app)
                 self.FILT_nodes_ids.append(result[0][0])
                 result.remove(result[0])
 
     def __bc_nr_filt_placement(self, sim, topology, services, app):
-        taken_nodes = list() # sprjecava da na dva ista cvora bude NR filt za dvije regije.
+        taken_nodes = list() # sprjecava da na dva ista cvora bude FILT filt za dvije regije.
         for region in sim.topology.my_as_graph.regions:
 
             # BC izmedu svih GW cvorova u toj regiji!
@@ -172,7 +172,7 @@ class Uc1_placement(Placement):
 
                 taken_nodes.append(result[0][0])
                 id_DES = sim.deploy_module(app.name, "FILT", services["FILT"], [result[0][0]])
-                topology.G.add_node(result[0][0], regions=region, type="FILT", id_DES=str(id_DES[0]))  # Daj tom FILT atribut kao da je u jednoj regiji, da kasnije u selectino methodu neki MM iz jedne refgije preko shortest patha ne odaberu neki drugi NR iz druge regije zato sto im je blizi.
+                topology.G.add_node(result[0][0], regions=region, type="FILT", id_DES=str(id_DES[0]))  # Daj tom FILT atribut kao da je u jednoj regiji, da kasnije u selectino methodu neki MM iz jedne refgije preko shortest patha ne odaberu neki drugi FILT iz druge regije zato sto im je blizi.
                 sim.deploy_sink(app.name, result[0][0], "FILT_SINK") #  Dodaj sink! On nema DES PROCES!
                 self.__link_module_attribute_with_topology_nodes("FILT", [result[0][0]], topology, app)
                 self.FILT_nodes_ids.append(result[0][0])

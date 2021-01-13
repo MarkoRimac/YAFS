@@ -6,7 +6,7 @@ from uc1_distribution import DeterministicDistribution_mm_uc1
 
 class Uc1_application(object):
 
-    def __init__(self, app_name, app_version, topology, N=1, h=1, d=1, P=1, M=1, decompressionRatio=0.6):
+    def __init__(self, app_name, app_version, topology, N=1, h=1, d=1, P=1, M=1, compressionRatio=0.6):
         self.app = Application(name=app_name)
 
         self.topology = topology
@@ -17,7 +17,7 @@ class Uc1_application(object):
         self.d = d  # instruction data multiplier
         self.P = P  # multiplier for processing power in all nodes and memory in NR and GW
         self.M = M  # multiplier for memory in MM and GW
-        self.compressionRatio = decompressionRatio
+        self.compressionRatio = compressionRatio
 
         # KONSTANTE
         self.SOURCE_GENERATION_PERIOD_s = 15 # Period od 15s za generiranje poruka u MM
@@ -32,8 +32,10 @@ class Uc1_application(object):
             self.__do_DECOMP_FILT()
         elif app_version == "DECOMP_FILT_A" or app_version == "DECOMP_DP":
             self.__do_FILT_DECOMP()
-        else:
+        elif app_version == "NONE":
             self.__do_NONE()
+        else:
+            raise exec("Unknown app_version!")
 
     def __calcOktets(self, ratio):
         return ratio * self.N
@@ -46,7 +48,7 @@ class Uc1_application(object):
         self.app.set_modules([  # SVAKI MODUL IMA PROCES, "DES" za sebe, i queue na sebi!
             {"MM": {"RAM": self.M, "IPT": self.P, "Type": Application.TYPE_SOURCE}},
             # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
-            {"GW": {"RAM": 100 * self.M, "IPT": 20 * self.P, "Type": Application.TYPE_MODULE}},
+            {"GW": {"RAM": 100 * self.M, "IPT": 200 * self.P, "Type": Application.TYPE_MODULE}},
             {"FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
             # TODO Filtracija i Dekompresija ce biti zasebni procesi na istom cvoru. Kako napraviti shareanje resursa IPT-a? Za sada sam stavio da svaki ima svoj IPT koji koristi, ISTO I DOLJE RADIM SA dva procesa na DC!
             {"DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
@@ -98,7 +100,7 @@ class Uc1_application(object):
         self.app.set_modules([  # SVAKI MODUL IMA PROCES, "DES" za sebe, i queue na sebi!
             {"MM": {"RAM": self.M, "IPT": self.P, "Type": Application.TYPE_SOURCE}},
             # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
-            {"GW": {"RAM": 100 * self.M, "IPT": 20 * self.P, "Type": Application.TYPE_MODULE}},
+            {"GW": {"RAM": 100 * self.M, "IPT": 200 * self.P, "Type": Application.TYPE_MODULE}},
             {"FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}}, # TODO Filtracija i Dekompresija ce biti zasebni procesi na istom cvoru. Kako napraviti shareanje resursa IPT-a? Za sada sam stavio da svaki ima svoj IPT koji koristi, ISTO I DOLJE RADIM SA dva procesa na DC!
             {"DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
             {"FILT_SINK": {"Type": Application.TYPE_SINK}}, # PURE SINK! Modul za sebe, koji će se staviti na isti čvor na kojem su NR-ovi. On  će služiti kao sink za poruke koje su se zaprimile više puta, RAM i IPT za takav modul nisu bitni!
@@ -147,7 +149,7 @@ class Uc1_application(object):
         self.app.set_modules([  # SVAKI MODUL IMA PROCES, "DES" za sebe, i queue na sebi!
             {"MM": {"RAM": self.M, "IPT": self.P, "Type": Application.TYPE_SOURCE}},
             # Za sto sluzi RAM? Nigdje u coru se ne pojavljuje da se ista racuna s njim, a u IEEE tekstu pise da je "obavezan".
-            {"GW": {"RAM": 100 * self.M, "IPT": 20 * self.P, "Type": Application.TYPE_MODULE}},
+            {"GW": {"RAM": 100 * self.M, "IPT": 200 * self.P, "Type": Application.TYPE_MODULE}},
             {"FILT": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}},
             # TODO Filtracija i Dekompresija ce biti zasebni procesi na istom cvoru. Kako napraviti shareanje resursa IPT-a? Za sada sam stavio da svaki ima svoj IPT koji koristi, ISTO I DOLJE RADIM SA dva procesa na DC!
             {"DECOMP": {"RAM": 60 * self.P, "IPT": 500 * self.P, "Type": Application.TYPE_MODULE}}, # Not really used here.
