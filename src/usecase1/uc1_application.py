@@ -77,7 +77,6 @@ class Uc1_application(object):
                                        bytes=self.__calcInstruction(60, self.decompressed_data))  # STORAGE time
 
         # Filtracija pa Dekompozicija
-        # source is added above in modules.
         self.app.add_service_module("GW", MM_GW_m, GW_FILT_m)
         self.app.add_service_module("FILT", GW_FILT_m, FILT_DECOMP_m)
         self.app.add_service_module("DECOMP", FILT_DECOMP_m, DECOMP_DP_m)

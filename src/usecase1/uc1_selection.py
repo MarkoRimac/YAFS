@@ -48,6 +48,10 @@ class Uc1_First_ShortestPath(Selection):
                     bestPaths.append(path) #  Vise pathova ce se poslati MM-u. To ce uzrokovat da dode do broadcastinga MM poruka na vise GW cvorova!
                     bestDESs.append(des)
         elif message.dst == "FILT":
+            # Marko: razlika izmedu ovog "else if-a" i dolje "else-a" je ta sto ova sprjecava da neki GW salje poruku na FILT modul koji
+            # ne nalazi u njegovoj regiji. Jer moze se desit da mu je FILT iz druge regije "blizi" po putanji, ali ako su konceptualno regije
+            # fizicki dosta odvojene, onda se to ne smije desiti! Moze se mozda unutar topologije na veze prema drugim regijama staviti veca "tezina"
+            # veza, pa da onda selekcija uzima tezinu veza a ne samo najkraci path. No zasada je rjesenje ovakvo!
             best_des = dict()  # Saves DES for corresponding path.
             for des in DES_dst:
                 dst_node = alloc_DES[des]

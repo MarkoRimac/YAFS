@@ -70,16 +70,16 @@ class Uc1_stats(Stats):
         plt.scatter(id_x_list, time_y_list)
         plt.plot(id_x_list, m * np.array(id_x_list, dtype=float) + b, color="red")
         plt.scatter(id_x_no_list, len(id_x_no_list)*[0], color="red", marker="x")
-        plt.xlabel("Time in")
-        plt.ylabel("Time spent in system")
+        plt.xlabel("Time message entered the system")
+        plt.ylabel("Time message spent in the system")
         if not os.path.exists("output/" + "config" + self.config_version + "_" + self.app_version):
             os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
         plt.savefig("output/" + "config" + self.config_version + "_" + self.app_version + "/end_to_end.png", dpi=300)
 
         plt.clf()
 
-        plt.ylabel('broj poruka')
-        plt.xlabel('vrijeme od izvora do ponora')
+        plt.ylabel('Number of messages')
+        plt.xlabel('Time message spent in the system')
         plt.locator_params(axis='y', integer=True)
         num_bins = 11
         plt.xticks(np.arange(-500, self.runtime_time + 1, (self.runtime_time+500)/num_bins))
