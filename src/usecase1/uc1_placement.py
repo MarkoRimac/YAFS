@@ -13,10 +13,10 @@ import random as rand
 
 class Uc1_placement(Placement):
 
-    def __init__(self, nr_filt_placement_method, nb_nr_filt_per_region, app_version, **kwargs):
+    def __init__(self, filt_placement_method, nb_filt_per_region, app_version, **kwargs):
         super(Uc1_placement,self).__init__(**kwargs)
-        self.nr_filt_placement_method = nr_filt_placement_method
-        self.nb_nr_filt_per_region = nb_nr_filt_per_region
+        self.filt_placement_method = filt_placement_method
+        self.nb_filt_per_region = nb_filt_per_region
         self.app_version = app_version
         self.T_nodes_ids = list()
         self.M_nodes_ids = list()
@@ -86,12 +86,12 @@ class Uc1_placement(Placement):
 
     def __FILT_placement(self, sim, topology, services, app):
 
-        if self.nr_filt_placement_method == "HIGHEST_DEGREE":
-            self.__highest_degree_nr_filt_placement(sim, topology, services, app)
-        elif self.nr_filt_placement_method == "BC":
-            self.__bc_nr_filt_placement(sim, topology, services, app)
+        if self.filt_placement_method == "HIGHEST_DEGREE":
+            self.__highest_degree_filt_placement(sim, topology, services, app)
+        elif self.filt_placement_method == "BC":
+            self.__bc_filt_placement(sim, topology, services, app)
         else:
-            raise exec("nr_filt placement method is not supported!")
+            raise exec("filt placement method is not supported!")
 
     def __GW_placement(self, sim, topology, services, app):
         id_DES = sim.deploy_module(app.name, "GW", services["GW"], self.GW_nodes_ids)
@@ -138,7 +138,7 @@ class Uc1_placement(Placement):
                         topology.G.add_node(node_id, IPT=x[m]['IPT'], RAM=x[m]['RAM'])
 
 
-    def __highest_degree_nr_filt_placement(self, sim, topology, services, app):
+    def __highest_degree_filt_placement(self, sim, topology, services, app):
         taken_nodes = list() # sprjecava da na dva ista cvora bude FILT filt za dvije regije.
         for region in topology.my_as_graph.regions.keys():
 
@@ -146,7 +146,7 @@ class Uc1_placement(Placement):
             result = topology.G.degree(nodes)
             result = sorted(result , key=lambda x: x[1], reverse=True)
 
-            for _ in range(self.nb_nr_filt_per_region):
+            for _ in range(self.nb_filt_per_region):
                 taken_nodes.append(result[0][0])
                 id_DES = sim.deploy_module(app.name, "FILT", services["FILT"], [result[0][0]])
                 topology.G.add_node(result[0][0], regions=region, type="FILT", id_DES=str(id_DES[0]))  # Daj tom FILT atribut kao da je u jednoj regiji, da kasnije u selectino methodu neki MM iz jedne refgije preko shortest patha ne odaberu neki drugi FILT iz druge regije zato sto im je blizi.
@@ -155,7 +155,7 @@ class Uc1_placement(Placement):
                 self.FILT_nodes_ids.append(result[0][0])
                 result.remove(result[0])
 
-    def __bc_nr_filt_placement(self, sim, topology, services, app):
+    def __bc_filt_placement(self, sim, topology, services, app):
         taken_nodes = list() # sprjecava da na dva ista cvora bude FILT filt za dvije regije.
         for region in sim.topology.my_as_graph.regions:
 
@@ -165,7 +165,7 @@ class Uc1_placement(Placement):
             result = list(result.items())
             result = sorted(result, key=lambda x: float(x[1]), reverse=True)
 
-            for _ in range(self.nb_nr_filt_per_region):
+            for _ in range(self.nb_filt_per_region):
                 while topology.G.nodes[result[0][0]]['type'] != "M":
                     result.remove(result[0]) # Trazi slobodni M CVOR!
                     # sanity check: Nece nikada ne naci M cvor zato sto je to osigurano preko input parametar sanity provjera.

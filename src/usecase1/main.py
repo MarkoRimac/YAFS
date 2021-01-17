@@ -22,7 +22,7 @@ def main(data):
     #Application
     app = Uc1_application("UseCase1", data.app_version, t, N=data.N, h=data.h, d=data.d, P=data.P, M=data.M, compressionRatio=data.Cr)
 
-    placement = Uc1_placement(data.nr_filt_placement_method, data.nb_nr_filt_per_region, data.app_version, name="UseCase1")  # Inizializes when starting s
+    placement = Uc1_placement(data.filt_placement_method, data.nb_filt_per_region, data.app_version, name="UseCase1")  # Inizializes when starting s
 
     if data.app_version == "DECOMP_FILT_B" or data.app_version == "DECOMP_GW" or data.app_version == "NONE":
         selectorPath = Uc1_First_ShortestPath("FILT_DP_m") # Message which is to be filtered
@@ -85,7 +85,7 @@ def get_and_check_args(data):
     parser.add_argument("nb_core_nodes_per_region_variance", type=check_positive_and_zero, help="Variance for number of core nodes per region")
     parser.add_argument("nb_gw_per_region", type=check_positive_and_zero, help="Number of gateways per region")
     parser.add_argument("nb_gw_per_region_variance", type=check_positive_and_zero, help="Number of gateways per region variance")
-    parser.add_argument("nb_nr_filt_per_region", type=check_bigger_than_zero, help="number of nr filt modules per region")
+    parser.add_argument("nb_filt_per_region", type=check_bigger_than_zero, help="number of nr filt modules per region")
     parser.add_argument("avg_deg_core_node", type=check_bigger_than_zero, help="average degree of a core node, Pick a random integer with uniform probability.")
     parser.add_argument("nb_mm", type=check_positive_and_zero, help="Number of measuring modules")
     parser.add_argument("nb_mm_variance", type=check_positive_and_zero, help="variance for normal distribution for number of measuring modules")
@@ -99,7 +99,7 @@ def get_and_check_args(data):
     parser.add_argument("M", type=check_positive_and_zero, help="multiplier for memory in MM and GW")
     parser.add_argument("Cr", type=check_positive_float, help="compression ratio")
     parser.add_argument("app_version", type=check_app_version, help="DECOMP_FILT, FILT_DECOMP or NONE types of applications. DECOMP_FILT means that message is decompressed first then filtered, and so on..")
-    parser.add_argument("nr_filt_placement_method", type=check_placement_type, help="PICK BETWEEN BC or HIGHEST_DEGREE")
+    parser.add_argument("filt_placement_method", type=check_placement_type, help="PICK BETWEEN BC or HIGHEST_DEGREE")
     parser.add_argument("config_version", type=str, help="set version of config. It makes sures not to overwrite privious config output files in slike folder")
 
     x = list(data.values())
@@ -109,7 +109,7 @@ def get_and_check_args(data):
     if arguments.nb_gw_per_region + arguments.nb_gw_per_region_variance * 3 > arguments.nb_core_nodes_per_region + arguments.nb_core_nodes_per_region_variance * 3:
         raise argparse.ArgumentTypeError("Please make sure that max possible number of gateways (considering 3sigma normal distribution with a variance) be less than a total nb_core_nodes! ")
 
-    if arguments.nb_nr_filt_per_region * arguments.nb_regions > (arguments.nb_core_nodes_per_region + arguments.nb_core_nodes_per_region_variance * 3) - (arguments.nb_gw_per_region + arguments.nb_gw_per_region_variance * 3):
+    if arguments.nb_filt_per_region * arguments.nb_regions > (arguments.nb_core_nodes_per_region + arguments.nb_core_nodes_per_region_variance * 3) - (arguments.nb_gw_per_region + arguments.nb_gw_per_region_variance * 3):
         raise argparse.ArgumentTypeError("Not enough free core nodes for that amount of FILT modules in region!")
 
     return arguments
