@@ -119,6 +119,18 @@ parser = argparse.ArgumentParser()
 if __name__ == '__main__':
     data = json.load(open('config.json'))
     args = get_and_check_args(data)
-    main(args)
+    mm = 1
+    filt_per_reg = 3
+    for _ in range(3):
+        mm = mm + 2
+        filt_per_reg = 3
+        for l in range (3):
+            filt_per_reg = filt_per_reg + 3
+            args.nb_filt_per_region = filt_per_reg
+            args.nb_mm = mm
+            main(args)
+        f = open("table.txt", "a")
+        f.write('\n')
+        f.close()
 
 

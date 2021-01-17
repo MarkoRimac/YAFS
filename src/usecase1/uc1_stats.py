@@ -44,6 +44,8 @@ class Uc1_stats(Stats):
         x = self.df[self.df['message'].isin(['MM_GW_m', 'DP_DS_m'])]
         x = x.drop_duplicates(['id', 'message'])    #  Dropaj one poruke koje su se slale na vise GW-a, ostavi samo jednu
         x = x.loc[:, ['id', 'message', 'time_emit']]
+        average_time = 0
+        counter = 0
 
         id_x_list = list()
         time_y_list = list()
@@ -56,16 +58,23 @@ class Uc1_stats(Stats):
                 result_time = x[x['id'] == id]['time_emit'].values[1] - time_in
                 id_x_list.append(time_in)
                 time_y_list.append(result_time)
+                average_time = average_time + result_time
+                counter = counter +1
             except IndexError:
                 id_x_no_list.append(time_in)
                 result_time = 'NaN'
                 time_y_no_list.append(-1)
+
+        f = open("table.txt", "a")
+        f.write('average: ' + str(round(average_time/counter, 2)) + ' loss: ' + str(len(time_y_no_list)) + '\n')
+        f.close()
 
         stats = linregress(id_x_list, time_y_list)
 
         m = stats.slope
         b = stats.intercept
 
+        # prvi graf
         plt.clf()
         plt.scatter(id_x_list, time_y_list)
         plt.plot(id_x_list, m * np.array(id_x_list, dtype=float) + b, color="red")
@@ -76,6 +85,7 @@ class Uc1_stats(Stats):
             os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
         plt.savefig("output/" + "config" + self.config_version + "_" + self.app_version + "/end_to_end.png", dpi=300)
 
+        # histogram
         plt.clf()
 
         plt.ylabel('Number of messages')
