@@ -125,10 +125,10 @@ class MY_as_graph_gen:
 
         # MARKO: Configurable constants!
         # in MBits/s
-        self.LoRaWAN_databit_translation = {0: (0.000250, 12), 1: (0.000440, 11), 2: (0.000980, 10), 3: (0.001760, 9),
-                                       4: (0.003125, 8), 5: (0.005470, 7), 6: (0.011000, 7)}
+        self.LoRaWAN_databit_translation = {0: (0.000250/8, 12), 1: (0.000440/8, 11), 2: (0.000980/8, 10), 3: (0.001760/8, 9),
+                                       4: (0.003125/8, 8), 5: (0.005470/8, 7), 6: (0.011000/8, 7)}
         self.IP_PT = 0.02  # in s
-        self.IP_BW = 100  # in MBits/s
+        self.IP_BW = 100  # in MB/s
 
         self.LoRaDatarate = lorawan_datarate # odavde se izvlaci BW
         self.LoRaPR = 0.01 # in s
