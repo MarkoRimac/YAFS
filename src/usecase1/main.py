@@ -121,15 +121,18 @@ if __name__ == '__main__':
     data = json.load(open('config.json'))
     args = get_and_check_args(data)
     for m in z:
-        data.app_version = m
-        data.nb_filt_per_region = 0
-        data.nb_mm = 0
+        args.app_version = m
+        args.nb_filt_per_region = 0
+        args.nb_mm = 0
         for _ in range(10):
-            data.nb_filt_per_region = data.nb_filt_per_region + 1
-            data.nb_mm = 0
+            args.nb_filt_per_region = args.nb_filt_per_region + 1
+            args.nb_mm = 0
             for b in range(10):
-                data.nb_mm = data.nb_mm + 3
-                data.config_version = str(_) + str(b)
+                args.nb_mm = args.nb_mm + 3
+                args.config_version = str(_) + str(b)
                 main(args)
+            f = open(args.app_version + "_table.txt", "a")
+            f.write('\n')
+            f.close()
 
 
