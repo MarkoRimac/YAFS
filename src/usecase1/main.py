@@ -117,8 +117,19 @@ def get_and_check_args(data):
 parser = argparse.ArgumentParser()
 
 if __name__ == '__main__':
+    z = ["DECOMP_FILT_B", "DECOMP_FILT_A", "DECOMP_DP", "DECOMP_GW", "NONE"]
     data = json.load(open('config.json'))
     args = get_and_check_args(data)
-    main(args)
+    for m in z:
+        data.app_version = m
+        data.nb_filt_per_region = 0
+        data.nb_mm = 0
+        for _ in range(10):
+            data.nb_filt_per_region = data.nb_filt_per_region + 1
+            data.nb_mm = 0
+            for b in range(10):
+                data.nb_mm = data.nb_mm + 3
+                data.config_version = str(_) + str(b)
+                main(args)
 
 
