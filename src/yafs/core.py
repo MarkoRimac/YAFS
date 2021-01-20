@@ -265,8 +265,8 @@ class Sim:
                 Computing message latency
                 """
                 size_bits = message.bytes
-                # size_bits = message.bytes * 8 # MARKO: Ovo je iz nekog razloga bilo STAVLJENO KAO KOMENTAR u originalnom kodu. Ne znam iz kojeg razloga, ja sam odkomentirao! jer kasnije
-                                            # se i transmit prikazuje u MBITS! (viditi otvoreni issue: https://github.com/acsicuib/YAFS/issues/38)
+                # size_bits = message.bytes * 8 # MARKO: Ovo je iz nekog razloga bilo STAVLJENO KAO KOMENTAR u originalnom kodu. Ne znam iz kojeg razloga
+                                            # (viditi otvoreni issue: https://github.com/acsicuib/YAFS/issues/38)
                 try:
                    # transmit = size_bits / (self.topology.get_edge(link)[Topology.LINK_BW] * 1000000.0)  # MBITS!
                     transmit = size_bits / (self.topology.get_edge(link)[Topology.LINK_BW] * 1000000.0)  # MBITS!
