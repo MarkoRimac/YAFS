@@ -20,7 +20,7 @@ class Uc1_stats(Stats):
         self.__uc1_end_to_end_time()
         self.__uc1_copy_config_file()
 
-    def uc1_stats_save_gexf(self, topology, name):
+    def uc1_stats_save_gexf(self, topology, name="uc1_graf"):
         if not os.path.exists("output/" + "config" + self.config_version + "_" + self.app_version):
             os.makedirs("output/" + "config" + self.config_version + "_" + self.app_version)
         nx.write_gexf(topology.G, "output/" + "config" + self.config_version + "_" + self.app_version + '/' + name + '.gexf')

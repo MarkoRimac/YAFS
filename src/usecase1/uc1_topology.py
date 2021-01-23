@@ -75,7 +75,7 @@ class MY_as_graph_gen:
     """ Generates random internet AS graphs.
     """
 
-    def __init__(self, nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
+    def __init__(self, simulation_type, nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
                 nb_mm, nb_mm_variance, t_connection_probability, lorawan_datarate, seed):
         """ Initializes variables. Immediate numbers are taken from [1].
 
@@ -103,6 +103,7 @@ class MY_as_graph_gen:
                           #  svim regijama
 
         # Moji parametri:
+        self.simulation_type = simulation_type
         self.seed = seed
         self.nb_regions = nb_regions
 
@@ -329,14 +330,17 @@ class MY_as_graph_gen:
 
                 # Add a connection to a nearby gateway based on the distance provided in shortest_paths_len dictionary.
                 for m, n in shortest_paths_len[node].items():
-                    connection_probability = 1/pow(2, n)
+                    if self.simulation_type == "URBAN":
+                        connection_probability = 1/pow(2, n)
+                    else:
+                        connection_probability = (1 / pow(2, n)) / 4
                     if rand.random() < connection_probability:
                         self.G.add_edge(m, i, BW=self.LoRaWAN_databit_translation[self.LoRaDatarate][0], PR=self.LoRaPR)
                 i += 1
 
         return self.G
 
-def my_random_internet_as_graph(nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
+def my_random_internet_as_graph(simulation_type, nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
                 nb_mm, nb_mm_variance, t_connection_probability, lorawan_datarate, seed=None):
     """ Generates a random undirected graph resembling the Internet AS network
 
@@ -374,7 +378,7 @@ def my_random_internet_as_graph(nb_regions, nb_core_nodes_per_region, nb_core_no
     in Communications, vol. 28, no. 8, pp. 1250-1261, October 2010.
     """
 
-    GG = MY_as_graph_gen(nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
+    GG = MY_as_graph_gen(simulation_type, nb_regions, nb_core_nodes_per_region, nb_core_nodes_per_region_variance, nb_gw_per_region, nb_gw_per_region_variance, avg_deg_core_node,
                 nb_mm, nb_mm_variance, t_connection_probability, lorawan_datarate, seed)
     GG.generate()
     return GG

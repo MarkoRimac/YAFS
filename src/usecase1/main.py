@@ -16,7 +16,7 @@ def main(data):
     rand.seed(data.seed)  # has to be an object.
     #TOPOLOGY creation
     t = Topology()
-    AS_graph = my_random_internet_as_graph(data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.lorawan_datarate, data.seed)
+    AS_graph = my_random_internet_as_graph(data.simulation_type, data.nb_regions, data.nb_core_nodes_per_region, data.nb_core_nodes_per_region_variance, data.nb_gw_per_region, data.nb_gw_per_region_variance, data.avg_deg_core_node, data.nb_mm, data.nb_mm_variance, data.t_connection_probability, data.lorawan_datarate, data.seed)
     t.G = AS_graph.G
     t.add_as_graph_link(AS_graph)
     #Application
@@ -33,11 +33,10 @@ def main(data):
 
     s = Sim(t)
     s.deploy_app(app.app, placement, selectorPath)
-    runtime_time = 5000
-    s.run(runtime_time,show_progress_monitor=False)
-    stats = Uc1_stats(str(data.config_version), data.app_version, runtime_time)
+    s.run(data.simulation_duration,show_progress_monitor=False)
+    stats = Uc1_stats(str(data.config_version), data.app_version, data.simulation_duration)
     stats.uc1_do_stats()
-    stats.uc1_stats_save_gexf(t, data.outFILE) # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
+    stats.uc1_stats_save_gexf(t) # Neki attributi se dodaju u runtimeu, pa zapisi graf tek tu.
 
 def check_bigger_than_zero(value):
     ival = int(value)
@@ -75,10 +74,16 @@ def check_lorawan_datarate(value):
         raise argparse.ArgumentTypeError("Has to be 0, 1,2,3,4,5,or6!")
     return ival
 
+def check_simulation_type(value):
+    if value in ["RURAL", "URBAN"]:
+        return value
+    else:
+        raise argparse.ArgumentTypeError("Please pick between: [RURAL, URBAN]")
+
 def get_and_check_args(data):
-    parser.add_argument("outFILE",
-                        type=str,
-                        help="output file name for generated graph")
+    parser.add_argument("simulation_type",
+                        type=check_simulation_type,
+                        help="rural or urban simulation type")
     parser.add_argument("nb_regions", type=check_bigger_than_zero,
                         help="Number of regions")
     parser.add_argument("nb_core_nodes_per_region", type=check_bigger_than_zero, help="Number of core nodes per region")
@@ -101,6 +106,7 @@ def get_and_check_args(data):
     parser.add_argument("app_version", type=check_app_version, help="DECOMP_FILT, FILT_DECOMP or NONE types of applications. DECOMP_FILT means that message is decompressed first then filtered, and so on..")
     parser.add_argument("filt_placement_method", type=check_placement_type, help="PICK BETWEEN BC or HIGHEST_DEGREE")
     parser.add_argument("config_version", type=str, help="set version of config. It makes sures not to overwrite privious config output files in slike folder")
+    parser.add_argument("simulation_duration", type=check_bigger_than_zero, help="the duration of simulation")
 
     x = list(data.values())
     arguments = parser.parse_args(x)
