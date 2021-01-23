@@ -121,7 +121,7 @@ class MY_as_graph_gen:
         self.total_num_of_mm = 0
 
         # Code static help variables.
-        self.reg_count = 0
+        self.reg_index = 0
 
         # MARKO: Configurable constants!
         # in MBits/s
@@ -217,11 +217,9 @@ class MY_as_graph_gen:
         self.providers[i] = set()
         self.nodes[kind].add(i)
         if kind == "GW":
-            r = self.reg_count
-            node_options = node_options.union(self.regions["REG" + str(r)])  # Union of regions
-            self.regions["REG" + str(r)].add(i)
-            self.reg_count = (self.reg_count + 1) % self.nb_regions # u svakoj regiji po reg_count
-            self.G.add_node(i, regions="REG" + str(r)) # for debugging add region attribute
+            node_options = node_options.union(self.regions["REG" + str(self.reg_index)])  # Union of regions
+            self.regions["REG" + str(self.reg_index)].add(i)
+            self.G.add_node(i, regions="REG" + str(self.reg_index)) # for debugging add region attribute
         else:
             region_union = list()
             for r in rand.sample(list(self.regions), regs):  # Choose random regs
@@ -303,6 +301,7 @@ class MY_as_graph_gen:
                 i += 1
         for l in range(self.nb_regions):
             x = abs(int(math.floor(rand.normalvariate(self.nb_gw_per_region, self.nb_gw_per_region_variance))))
+            self.reg_index = l
             for _ in range(x):
                 self.nodes["GW"].add(self.add_node(i, "GW", self.avg_deg_core_node, self.t_m))
                 i += 1
