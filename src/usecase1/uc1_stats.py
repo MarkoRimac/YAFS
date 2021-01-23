@@ -81,7 +81,8 @@ class Uc1_stats(Stats):
         plt.ylabel('Number of messages')
         plt.xlabel('Time message spent in the system')
         plt.locator_params(axis='y', integer=True)
-        num_bins = 11
+        num_bins = int((self.runtime_time / 500)) + 1
+        #num_bins = 11
         plt.xticks(np.arange(-500, self.runtime_time + 1, (self.runtime_time+500)/num_bins))
         n, bins, patches = plt.hist(time_y_list + time_y_no_list,  num_bins, facecolor='blue', range=[-500,self.runtime_time], alpha=1)
         patches[0].set_facecolor('r')
