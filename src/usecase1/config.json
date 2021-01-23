@@ -13,12 +13,12 @@
   "lorawan_datarate" : "5",
   "seed": "4",
   "N": "200",
-  "h": "100",
-  "d": "100",
+  "h": "20",
+  "d": "50",
   "P": "1",
   "M": "1",
   "Cr": "0.6",
-  "app_version": "DECOMP_DP",
+  "app_version": "DECOMP_FILT_A",
   "nr_filt_placement_method": "BC",
   "config_version": "1"
 }

@@ -117,7 +117,7 @@ def get_and_check_args(data):
 parser = argparse.ArgumentParser()
 
 if __name__ == '__main__':
-    z = ["DECOMP_FILT_B", "DECOMP_FILT_A", "DECOMP_DP", "DECOMP_GW", "NONE"]
+    z = ["DECOMP_FILT_A"]
     data = json.load(open('config.json'))
     args = get_and_check_args(data)
     for m in z:
