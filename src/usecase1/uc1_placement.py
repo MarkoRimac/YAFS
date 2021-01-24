@@ -129,6 +129,11 @@ class Uc1_placement(Placement):
         topology.G.add_node(result[0][0], type="DP", id_DES=str(id_DES[0]))
         self.__link_module_attribute_with_topology_nodes("DP", [result[0][0]], topology, app)
 
+        # dodaj jos jednoga
+        id_DES = sim.deploy_module(app.name, "DP", services["DP"], [result[1][0]])
+        topology.G.add_node(result[1][0], type="DP", id_DES=str(id_DES[0]))
+        self.__link_module_attribute_with_topology_nodes("DP", [result[1][0]], topology, app)
+
     def __link_module_attribute_with_topology_nodes(self, module, node_ids,topology, app):
         data = app.data
         for node_id in node_ids:
