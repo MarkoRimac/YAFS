@@ -7,7 +7,7 @@
   "nb_gw_per_region_variance": "0",
   "nb_nr_filt_per_region": "10",
   "avg_deg_core_node":  "4",
-  "nb_mm": "30",
+  "nb_mm": "10",
   "nb_mm_variance": "0",
   "t_connection_probability": "10",
   "lorawan_datarate" : "5",

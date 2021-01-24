@@ -128,10 +128,10 @@ if __name__ == '__main__':
             args.nb_filt_per_region = args.nb_filt_per_region + 1
             args.nb_mm = 0
             for b in range(10):
-                args.nb_mm = args.nb_mm + 3
-                args.config_version = str(_) + str(b)
+                args.nb_mm = args.nb_mm + 1
+                args.config_version = str(_) + str(b) + "__"
                 main(args)
-            f = open(args.app_version + "_table.txt", "a")
+            f = open(args.app_version + "_table2.txt", "a")
             f.write('\n')
             f.close()
 
